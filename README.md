@@ -1,7 +1,7 @@
-Bitcore Node
+Bitcore Node Dash
 ============
 
-A Bitcoin full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to [Bitcoin Core with additional indexing](https://github.com/bitpay/bitcoin/tree/0.12-bitcore) for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
+A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to Dash Core with additional indexing for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
 
 ## Install
 
@@ -10,22 +10,19 @@ npm install -g bitcore-node
 bitcore-node start
 ```
 
-Note: For your convenience, we distribute bitcoind binaries for x86_64 Linux and x86_64 Mac OS X. Upon npm install, the binaries for your platform will be downloaded. For more detailed installation instructions, or if you want to compile the project yourself, then please see the Bitcore branch of [Bitcoin Core with additional indexing](https://github.com/bitpay/bitcoin/tree/0.12-bitcore).
-
 ## Prerequisites
 
-- GNU/Linux x86_32/x86_64, or OSX 64bit *(for bitcoind distributed binaries)*
 - Node.js v0.10, v0.12 or v4
 - ZeroMQ *(libzmq3-dev for Ubuntu/Debian or zeromq on OSX)*
-- ~200GB of disk storage
-- ~4GB of RAM
+- ~20GB of disk storage
+- ~1GB of RAM
 
 ## Configuration
 
 Bitcore includes a Command Line Interface (CLI) for managing, configuring and interfacing with your Bitcore Node.
 
 ```bash
-bitcore-node create -d <bitcoin-data-dir> mynode
+bitcore-node create -d <dash-data-dir> mynode
 cd mynode
 bitcore-node install <service>
 bitcore-node install https://github.com/yourname/helloworld
@@ -37,9 +34,9 @@ This will create a directory with configuration files for your node and install 
 
 There are several add-on services available to extend the functionality of Bitcore:
 
-- [Insight API](https://github.com/bitpay/insight-api/tree/v0.3.0)
-- [Insight UI](https://github.com/bitpay/insight/tree/v0.3.0)
-- [Bitcore Wallet Service](https://github.com/bitpay/bitcore-wallet-service)
+- Insight API
+- Insight UI
+- Bitcore Wallet Service
 
 ## Documentation
 
