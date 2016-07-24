@@ -27,12 +27,9 @@
     }
   ],
   "bin": {
-    "bitcore-node": "./bin/bitcore-node",
-    "dashd": "./bin/dashd"
+    "bitcore-node": "./bin/bitcore-node"
   },
   "scripts": {
-    "preinstall": "./scripts/download",
-    "verify": "./scripts/download --skip-bitcoin-download --verify-bitcoin-download",
     "test": "mocha -R spec --recursive",
     "regtest": "./scripts/regtest",
     "jshint": "jshint --reporter=node_modules/jshint-stylish ./lib",
