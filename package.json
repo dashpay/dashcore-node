@@ -28,7 +28,7 @@
   ],
   "bin": {
     "bitcore-node": "./bin/bitcore-node",
-    "bitcoind": "./bin/bitcoind"
+    "dashd": "./bin/dashd"
   },
   "scripts": {
     "preinstall": "./scripts/download",
@@ -46,7 +46,7 @@
   "dependencies": {
     "async": "^1.3.0",
     "bitcoind-rpc": "^0.6.0",
-    "bitcore-lib": "^0.13.13",
+    "bitcore-lib-dash": "snogcel/bitcore-lib-dash",
     "body-parser": "^1.13.3",
     "colors": "^1.1.2",
     "commander": "^2.8.1",

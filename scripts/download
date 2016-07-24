@@ -5,20 +5,20 @@ set -e
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.."
 platform=`uname -a | awk '{print tolower($1)}'`
 arch=`uname -m`
-version="0.12.0"
-url="https://github.com/bitpay/bitcoin/releases/download"
-tag="v0.12-bitcore"
+version="0.12.1"
+url="http://api.dash.org/download"
+tag="v0.12.1-bitcore"
 
 if [ "${platform}" == "linux" ]; then
     if [ "${arch}" == "x86_64" ]; then
-        tarball_name="bitcoin-${version}-linux64.tar.gz"
+        tarball_name="dash-${version}-linux64.tar.gz"
     elif [ "${arch}" == "x86_32" ]; then
-        tarball_name="bitcoin-${version}-linux32.tar.gz"
+        tarball_name="dash-${version}-linux32.tar.gz"
     fi
 elif [ "${platform}" == "darwin" ]; then
-    tarball_name="bitcoin-${version}-osx64.tar.gz"
+    tarball_name="dash-${version}-osx64.tar.gz"
 else
-    echo "Bitcoin binary distribution not available for platform and architecture"
+    echo "Dash binary distribution not available for platform and architecture"
     exit -1
 fi
 
@@ -29,7 +29,7 @@ download_bitcoind() {
 
     cd "${root_dir}/bin"
 
-    echo "Downloading bitcoin: ${binary_url}"
+    echo "Downloading dash: ${binary_url}"
 
     is_curl=true
     if hash curl 2>/dev/null; then
@@ -48,20 +48,20 @@ download_bitcoind() {
             wget $shasums_url
         fi
         if test -e "${tarball_name}"; then
-            echo "Unpacking bitcoin distribution"
+            echo "Unpacking dash distribution"
             tar -xvzf $tarball_name
             if test $? -eq 0; then
-                ln -sf "bitcoin-${version}/bin/bitcoind"
+                ln -sf "dash-${version}/bin/dashd"
                 return;
             fi
         fi
     fi
-    echo "Bitcoin binary distribution could not be downloaded"
+    echo "Dash binary distribution could not be downloaded"
     exit -1
 }
 
 verify_download() {
-    echo "Verifying signatures of bitcoin download"
+    echo "Verifying signatures of dash download"
     gpg --verify "${root_dir}/bin/SHA256SUMS.asc"
 
     if hash shasum 2>/dev/null; then
