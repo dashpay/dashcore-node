@@ -6,8 +6,8 @@ A Dash full node for building applications and services with Node.js. A node is 
 ## Install
 
 ```bash
-npm install -g bitcore-node
-bitcore-node start
+npm install -g bitcore-node-dash
+bitcore-node-dash start
 ```
 
 ## Prerequisites
@@ -22,10 +22,10 @@ bitcore-node start
 Bitcore includes a Command Line Interface (CLI) for managing, configuring and interfacing with your Bitcore Node.
 
 ```bash
-bitcore-node create -d <dash-data-dir> mynode
+bitcore-node-dash create -d <dash-data-dir> mynode
 cd mynode
-bitcore-node install <service>
-bitcore-node install https://github.com/yourname/helloworld
+bitcore-node-dash install <service>
+bitcore-node-dash install https://github.com/yourname/helloworld
 ```
 
 This will create a directory with configuration files for your node and install the necessary dependencies. For more information about (and developing) services, please see the [Service Documentation](docs/services.md).
@@ -55,7 +55,7 @@ Please send pull requests for bug fixes, code optimization, and ideas for improv
 
 ## License
 
-Code released under [the MIT license](https://github.com/bitpay/bitcore-node/blob/master/LICENSE).
+Code released under [the MIT license](https://github.com/bitpay/bitcore-node-dash/blob/master/LICENSE).
 
 Copyright 2013-2015 BitPay, Inc.
 

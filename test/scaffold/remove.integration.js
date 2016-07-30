@@ -25,7 +25,7 @@ describe('#remove', function() {
         throw err;
       }
       fs.writeFile(
-        testDir + '/s0/s1/bitcore-node.json',
+        testDir + '/s0/s1/bitcore-node-dash.json',
         JSON.stringify(startConfig),
         function(err) {
           if (err) {
@@ -64,7 +64,7 @@ describe('#remove', function() {
       });
     });
 
-    it('will update bitcore-node.json services', function(done) {
+    it('will update bitcore-node-dash.json services', function(done) {
       var spawn = sinon.stub().returns({
         stdout: {
           on: sinon.stub()
@@ -92,7 +92,7 @@ describe('#remove', function() {
         services: ['b']
       }, function(err) {
         should.not.exist(err);
-        var configPath = path.resolve(testDir, 's0/s1/bitcore-node.json');
+        var configPath = path.resolve(testDir, 's0/s1/bitcore-node-dash.json');
         var config = JSON.parse(fs.readFileSync(configPath));
         config.services.should.deep.equal(['a', 'c']);
         done();

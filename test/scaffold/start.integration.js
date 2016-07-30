@@ -19,7 +19,7 @@ describe('#start', function() {
 
   describe('will dynamically create a node from a configuration', function() {
 
-    it('require each bitcore-node service with default config', function(done) {
+    it('require each bitcore-node-dash service with default config', function(done) {
       var node;
       var TestNode = function(options) {
         options.services[0].should.deep.equal({
@@ -87,7 +87,7 @@ describe('#start', function() {
         done();
       });
     });
-    it('require each bitcore-node service with explicit config', function(done) {
+    it('require each bitcore-node-dash service with explicit config', function(done) {
       var node;
       var TestNode = function(options) {
         options.services[0].should.deep.equal({
