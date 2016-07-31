@@ -1,18 +1,20 @@
 Bitcore Node Dash
 ============
 
-A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to Dash Core with additional indexing for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
+A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to [Dash Core with additional indexing](https://github.com/snogcel/dash/tree/v0.12.1.x) for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
 
 ## Install
 
 ```bash
 npm install -g bitcore-node-dash
-bitcore-node-dash start
 ```
+
+Installation of bitcore-node-dash can also be performed using a Dockerfile. Please note that this Dockerfile is still under development and should be considered an 'Alpha' version, see [docker-bitcore_insight_dash](https://github.com/moocowmoo/docker-bitcore_insight_dash) for more details.
 
 ## Prerequisites
 
-- Node.js v0.10, v0.12 or v4
+- Dash Core (v0.12.1.x) with support for additional indexing *(see above)*
+- Node.js v0.10, v0.12, v4 or v5
 - ZeroMQ *(libzmq3-dev for Ubuntu/Debian or zeromq on OSX)*
 - ~20GB of disk storage
 - ~1GB of RAM
@@ -26,17 +28,22 @@ bitcore-node-dash create -d <dash-data-dir> mynode
 cd mynode
 bitcore-node-dash install <service>
 bitcore-node-dash install https://github.com/yourname/helloworld
+bitcore-node-dash start
 ```
 
-This will create a directory with configuration files for your node and install the necessary dependencies. For more information about (and developing) services, please see the [Service Documentation](docs/services.md).
+This will create a directory with configuration files for your node and install the necessary dependencies.
+
+Please note that [Dash Core with additional indexing](https://github.com/snogcel/dash/tree/v0.12.1.x) must be compiled seperately. Once completed the dashd binary should be placed into the &lt;dash-data-dir&gt; folder specified during node creation.
+
+For more information about (and developing) services, please see the [Service Documentation](docs/services.md).
 
 ## Add-on Services
 
 There are several add-on services available to extend the functionality of Bitcore:
 
-- Insight API
-- Insight UI
-- Bitcore Wallet Service
+- [Insight API Dash](https://github.com/dashpay/insight-api-dash/tree/master)
+- [Insight UI Dash](https://github.com/dashpay/insight-ui-dash/tree/master)
+- Bitcore Wallet Service (coming soon)
 
 ## Documentation
 
