@@ -9,6 +9,7 @@ A Dash full node for building applications and services with Node.js. A node is 
 npm install -g bitcore-node-dash
 ```
 
+Note: For your convenience, we distribute bitcoind binaries for x86_64 Linux and x86_64 Mac OS X. Upon npm install, the binaries for your platform will be downloaded. For more detailed installation instructions, or if you want to compile the project yourself, then please see the Bitcore branch of [Bitcoin Core with additional indexing](https://github.com/bitpay/bitcoin/tree/0.12.1-bitcore).
 Installation of bitcore-node-dash can also be performed using a Dockerfile. Please note that this Dockerfile is still under development and should be considered an 'Alpha' version, see [docker-bitcore_insight_dash](https://github.com/moocowmoo/docker-bitcore_insight_dash) for more details.
 
 ## Prerequisites
