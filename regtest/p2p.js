@@ -52,7 +52,7 @@ describe('P2P Functionality', function() {
       bitcoind = require('../').services.Bitcoin({
         spawn: {
           datadir: datadir,
-          exec: path.resolve(__dirname, '../bin/bitcoind')
+          exec: path.resolve(__dirname, process.env.HOME, './.bitcore/data/dashd')
         },
         node: {
           network: bitcore.Networks.testnet
@@ -63,7 +63,7 @@ describe('P2P Functionality', function() {
         log.error('error="%s"', err.message);
       });
 
-      log.info('Waiting for Bitcoin Core to initialize...');
+      log.info('Waiting for Dash Core to initialize...');
 
       bitcoind.start(function(err) {
         if (err) {
@@ -82,7 +82,7 @@ describe('P2P Functionality', function() {
 
         peer = new Peer({
           host: '127.0.0.1',
-          port: '18444',
+          port: '19994',
           network: regtestNetwork
         });
 
