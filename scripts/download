@@ -2,12 +2,11 @@
 
 set -e
 
-root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.."
+root_dir="${HOME}/.bitcore"
 platform=`uname -a | awk '{print tolower($1)}'`
 arch=`uname -m`
 version="0.12.1"
-url="http://api.dash.org/download"
-tag="v0.12.1-bitcore"
+url="https://dashpay.atlassian.net/builds/browse/DASHL-DEV-597/artifact/JOB1/gitian-linux-dash-dist/"
 
 if [ "${platform}" == "linux" ]; then
     if [ "${arch}" == "x86_64" ]; then
@@ -22,12 +21,15 @@ else
     exit -1
 fi
 
-binary_url="${url}/${tag}/${tarball_name}"
-shasums_url="${url}/${tag}/SHA256SUMS.asc"
+binary_url="${url}/${tarball_name}"
+shasums_url="${url}/SHA256SUMS.asc"
 
 download_bitcoind() {
 
-    cd "${root_dir}/bin"
+    mkdir -p "${root_dir}"
+    mkdir -p "${root_dir}/data"
+
+    cd "${root_dir}/data"
 
     echo "Downloading dash: ${binary_url}"
 
