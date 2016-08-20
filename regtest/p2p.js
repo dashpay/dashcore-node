@@ -6,7 +6,7 @@ var path = require('path');
 var index = require('..');
 var log = index.log;
 
-var p2p = require('bitcore-p2p');
+var p2p = require('bitcore-p2p-dash');
 var Peer = p2p.Peer;
 var Messages = p2p.Messages;
 var chai = require('chai');
