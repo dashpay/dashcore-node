@@ -30,6 +30,8 @@
     "bitcore-node-dash": "./bin/bitcore-node-dash"
   },
   "scripts": {
+    "preinstall": "./scripts/download",
+    "verify": "./scripts/download --skip-bitcoin-download --verify-bitcoin-download",
     "test": "mocha -R spec --recursive",
     "regtest": "./scripts/regtest",
     "jshint": "jshint --reporter=node_modules/jshint-stylish ./lib",

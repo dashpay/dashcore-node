@@ -6,7 +6,7 @@ root_dir="${HOME}/.bitcore"
 platform=`uname -a | awk '{print tolower($1)}'`
 arch=`uname -m`
 version="0.12.1"
-url="https://dashpay.atlassian.net/builds/browse/DASHL-DEV-597/artifact/JOB1/gitian-linux-dash-dist/"
+url="https://dashpay.atlassian.net/builds/browse/DASHL-DEV-627/artifact/JOB1/gitian-linux-dash-dist/"
 
 if [ "${platform}" == "linux" ]; then
     if [ "${arch}" == "x86_64" ]; then
