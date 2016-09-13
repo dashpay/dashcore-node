@@ -15,6 +15,7 @@ node_js:
   - "v0.12.7"
   - "v4"
 script:
+  - ./scripts/download
   - npm run regtest
   - npm run test
   - npm run jshint

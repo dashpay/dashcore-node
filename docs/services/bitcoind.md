@@ -1,6 +1,6 @@
 # Bitcoin Service
 
-The Bitcoin Service is a Node.js interface to [Bitcoin Core](https://github.com/bitcoin/bitcoin) for querying information about the bitcoin block chain. It will manage starting and stopping `bitcoind` or connect to several running `bitcoind` processes. It uses a branch of a [branch of Bitcoin Core](https://github.com/bitpay/bitcoin/tree/0.12-bitcore) with additional indexes for querying information about addresses and blocks. Results are cached for performance and there are several additional API methods added for common queries.
+The Bitcoin Service is a Node.js interface to [Bitcoin Core](https://github.com/bitcoin/bitcoin) for querying information about the bitcoin block chain. It will manage starting and stopping `bitcoind` or connect to several running `bitcoind` processes. It uses a branch of a [branch of Bitcoin Core](https://github.com/bitpay/bitcoin/tree/0.12.1-bitcore) with additional indexes for querying information about addresses and blocks. Results are cached for performance and there are several additional API methods added for common queries.
 
 ## Configuration
 
@@ -270,13 +270,20 @@ The `summary` will have the format (values are in satoshis):
   totalSpent: 0,
   balance: 1000000000,
   unconfirmedBalance: 1000000000,
-  appearances: 1, // number of transactions
+  appearances: 1,
   unconfirmedAppearances: 0,
   txids: [
     '3f7d13efe12e82f873f4d41f7e63bb64708fc4c942eb8c6822fa5bd7606adb00'
   ]
 }
 ```
+**Notes**:
+- `totalReceived` does not exclude change *(the amount of satoshis originating from the same address)*
+- `unconfirmedBalance` is the delta that the unconfirmed transactions have on the total balance *(can be both positive and negative)*
+- `unconfirmedAppearances` is the total number of unconfirmed transactions
+- `appearances` is the total confirmed transactions
+- `txids` Are sorted in block order with the most recent at the beginning. A maximum of 1000 *(default)* will be returned, the `from` and `to` options can be used to get further values.
+
 
 ## Events
 The Bitcoin Service exposes two events via the Bus, and there are a few events that can be directly registered:

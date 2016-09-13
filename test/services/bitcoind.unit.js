@@ -84,6 +84,16 @@ describe('Bitcoin Service', function() {
     });
   });
 
+  describe('#_initDefaults', function() {
+    it('will set transaction concurrency', function() {
+      var bitcoind = new BitcoinService(baseConfig);
+      bitcoind._initDefaults({transactionConcurrency: 10});
+      bitcoind.transactionConcurrency.should.equal(10);
+      bitcoind._initDefaults({});
+      bitcoind.transactionConcurrency.should.equal(5);
+    });
+  });
+
   describe('@dependencies', function() {
     it('will have no dependencies', function() {
       BitcoinService.dependencies.should.deep.equal([]);
@@ -353,6 +363,13 @@ describe('Bitcoin Service', function() {
   });
 
   describe('#_loadSpawnConfiguration', function() {
+    var sandbox = sinon.sandbox.create();
+    beforeEach(function() {
+      sandbox.stub(log, 'info');
+    });
+    afterEach(function() {
+      sandbox.restore();
+    });
     it('will parse a bitcoin.conf file', function() {
       var TestBitcoin = proxyquire('../../lib/services/bitcoind', {
         fs: {
@@ -365,7 +382,9 @@ describe('Bitcoin Service', function() {
         }
       });
       var bitcoind = new TestBitcoin(baseConfig);
-      bitcoind._loadSpawnConfiguration({datadir: process.env.HOME + '/.bitcoin'});
+      bitcoind.options.spawn.datadir = '/tmp/.bitcoin';
+      var node = {};
+      bitcoind._loadSpawnConfiguration(node);
       should.exist(bitcoind.spawn.config);
       bitcoind.spawn.config.should.deep.equal({
         addressindex: 1,
@@ -387,6 +406,33 @@ describe('Bitcoin Service', function() {
         zmqpubrawtx: 'tcp://127.0.0.1:28332',
         zmqpubrawtxlock: 'tcp://127.0.0.1:28332'
       });
+    });
+    it('will expand relative datadir to absolute path', function() {
+      var TestBitcoin = proxyquire('../../lib/services/bitcoind', {
+        fs: {
+          readFileSync: readFileSync,
+          existsSync: sinon.stub().returns(true),
+          writeFileSync: sinon.stub()
+        },
+        mkdirp: {
+          sync: sinon.stub()
+        }
+      });
+      var config = {
+        node: {
+          network: bitcore.Networks.testnet,
+          configPath: '/tmp/.bitcore/bitcore-node.json'
+        },
+        spawn: {
+          datadir: './data',
+          exec: 'testpath'
+        }
+      };
+      var bitcoind = new TestBitcoin(config);
+      bitcoind.options.spawn.datadir = './data';
+      var node = {};
+      bitcoind._loadSpawnConfiguration(node);
+      bitcoind.options.spawn.datadir.should.equal('/tmp/.bitcore/data');
     });
     it('should throw an exception if txindex isn\'t enabled in the configuration', function() {
       var TestBitcoin = proxyquire('../../lib/services/bitcoind', {
@@ -434,7 +480,9 @@ describe('Bitcoin Service', function() {
         }
       };
       var bitcoind = new TestBitcoin(config);
-      bitcoind._loadSpawnConfiguration({datadir: process.env.HOME + '/.bitcoin'});
+      bitcoind.options.spawn.datadir = '/tmp/.bitcoin';
+      var node = {};
+      bitcoind._loadSpawnConfiguration(node);
     });
   });
 
@@ -443,7 +491,7 @@ describe('Bitcoin Service', function() {
     beforeEach(function() {
       sandbox.stub(log, 'warn');
     });
-    after(function() {
+    afterEach(function() {
       sandbox.restore();
     });
     it('should warn the user if reindex is set to 1 in the bitcoin.conf file', function() {
@@ -462,6 +510,22 @@ describe('Bitcoin Service', function() {
       bitcoind._checkConfigIndexes(config, node);
       log.warn.callCount.should.equal(1);
       node._reindex.should.equal(true);
+    });
+    it('should warn if zmq port and hosts do not match', function() {
+      var bitcoind = new BitcoinService(baseConfig);
+      var config = {
+        txindex: 1,
+        addressindex: 1,
+        spentindex: 1,
+        server: 1,
+        zmqpubrawtx: 'tcp://127.0.0.1:28332',
+        zmqpubhashblock: 'tcp://127.0.0.1:28331',
+        reindex: 1
+      };
+      var node = {};
+      (function() {
+        bitcoind._checkConfigIndexes(config, node);
+      }).should.throw('"zmqpubrawtx" and "zmqpubhashblock"');
     });
   });
 
@@ -486,46 +550,92 @@ describe('Bitcoin Service', function() {
     });
   });
 
-  describe('#_tryAll', function() {
-    it('will retry the number of bitcoind nodes', function(done) {
+  describe('#_tryAllClients', function() {
+    it('will retry for each node client', function(done) {
       var bitcoind = new BitcoinService(baseConfig);
       bitcoind.tryAllInterval = 1;
-      bitcoind.nodes.push({});
-      bitcoind.nodes.push({});
-      bitcoind.nodes.push({});
-      var count = 0;
-      var func = function(callback) {
-        count++;
-        if (count <= 2) {
-          callback(new Error('test'));
-        } else {
-          callback();
+      bitcoind.nodes.push({
+        client: {
+          getInfo: sinon.stub().callsArgWith(0, new Error('test'))
         }
-      };
-      bitcoind._tryAll(function(next) {
-        func(next);
-      }, function() {
-        count.should.equal(3);
+      });
+      bitcoind.nodes.push({
+        client: {
+          getInfo: sinon.stub().callsArgWith(0, new Error('test'))
+        }
+      });
+      bitcoind.nodes.push({
+        client: {
+          getInfo: sinon.stub().callsArg(0)
+        }
+      });
+      bitcoind._tryAllClients(function(client, next) {
+        client.getInfo(next);
+      }, function(err) {
+        if (err) {
+          return done(err);
+        }
+        bitcoind.nodes[0].client.getInfo.callCount.should.equal(1);
+        bitcoind.nodes[1].client.getInfo.callCount.should.equal(1);
+        bitcoind.nodes[2].client.getInfo.callCount.should.equal(1);
         done();
       });
     });
-    it('will get error if all fail', function(done) {
+    it('will start using the current node index (round-robin)', function(done) {
       var bitcoind = new BitcoinService(baseConfig);
       bitcoind.tryAllInterval = 1;
-      bitcoind.nodes.push({});
-      bitcoind.nodes.push({});
-      bitcoind.nodes.push({});
-      var count = 0;
-      var func = function(callback) {
-        count++;
-        callback(new Error('test'));
-      };
-      bitcoind._tryAll(function(next) {
-        func(next);
+      bitcoind.nodes.push({
+        client: {
+          getInfo: sinon.stub().callsArgWith(0, new Error('2'))
+        }
+      });
+      bitcoind.nodes.push({
+        client: {
+          getInfo: sinon.stub().callsArgWith(0, new Error('3'))
+        }
+      });
+      bitcoind.nodes.push({
+        client: {
+          getInfo: sinon.stub().callsArgWith(0, new Error('1'))
+        }
+      });
+      bitcoind.nodesIndex = 2;
+      bitcoind._tryAllClients(function(client, next) {
+        client.getInfo(next);
+      }, function(err) {
+        err.should.be.instanceOf(Error);
+        err.message.should.equal('3');
+        bitcoind.nodes[0].client.getInfo.callCount.should.equal(1);
+        bitcoind.nodes[1].client.getInfo.callCount.should.equal(1);
+        bitcoind.nodes[2].client.getInfo.callCount.should.equal(1);
+        bitcoind.nodesIndex.should.equal(2);
+        done();
+      });
+    });
+    it('will get error if all clients fail', function(done) {
+      var bitcoind = new BitcoinService(baseConfig);
+      bitcoind.tryAllInterval = 1;
+      bitcoind.nodes.push({
+        client: {
+          getInfo: sinon.stub().callsArgWith(0, new Error('test'))
+        }
+      });
+      bitcoind.nodes.push({
+        client: {
+          getInfo: sinon.stub().callsArgWith(0, new Error('test'))
+        }
+      });
+      bitcoind.nodes.push({
+        client: {
+          getInfo: sinon.stub().callsArgWith(0, new Error('test'))
+        }
+      });
+      bitcoind._tryAllClients(function(client, next) {
+        client.getInfo(next);
       }, function(err) {
         should.exist(err);
+        err.should.be.instanceOf(Error);
         err.message.should.equal('test');
-        count.should.equal(3);
         done();
       });
     });
@@ -2395,6 +2505,180 @@ describe('Bitcoin Service', function() {
           return done(err);
         }
         utxos.length.should.equal(0);
+        done();
+      });
+    });
+    it('three confirmed utxos -> one utxo after mempool', function(done) {
+      var deltas = [
+        {
+          txid: 'e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce',
+          satoshis: -7679241,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 0,
+          timestamp: 1461342707725,
+          prevtxid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          prevout: 0
+        },
+        {
+          txid: 'e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce',
+          satoshis: -7679241,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 0,
+          timestamp: 1461342707725,
+          prevtxid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          prevout: 1
+        },
+        {
+          txid: 'e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce',
+          satoshis: -7679241,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 1,
+          timestamp: 1461342707725,
+          prevtxid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          prevout: 2
+        },
+        {
+          txid: 'e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce',
+          satoshis: 100000,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 1,
+          script: '76a914809dc14496f99b6deb722cf46d89d22f4beb8efd88ac',
+          timestamp: 1461342833133
+        }
+      ];
+      var bitcoind = new BitcoinService(baseConfig);
+      var confirmedUtxos = [
+        {
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          txid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          outputIndex: 0,
+          script: '76a914f399b4b8894f1153b96fce29f05e6e116eb4c21788ac',
+          satoshis: 7679241,
+          height: 207111
+        },
+        {
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          txid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          outputIndex: 1,
+          script: '76a914f399b4b8894f1153b96fce29f05e6e116eb4c21788ac',
+          satoshis: 7679241,
+          height: 207111
+        },
+        {
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          txid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          outputIndex: 2,
+          script: '76a914f399b4b8894f1153b96fce29f05e6e116eb4c21788ac',
+          satoshis: 7679241,
+          height: 207111
+        }
+      ];
+      bitcoind.nodes.push({
+        client: {
+          getAddressUtxos: sinon.stub().callsArgWith(1, null, {
+            result: confirmedUtxos
+          }),
+          getAddressMempool: sinon.stub().callsArgWith(1, null, {
+            result: deltas
+          })
+        }
+      });
+      var options = {
+        queryMempool: true
+      };
+      var address = '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo';
+      bitcoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
+        if (err) {
+          return done(err);
+        }
+        utxos.length.should.equal(1);
+        done();
+      });
+    });
+    it('spending utxos in the mempool', function(done) {
+      var deltas = [
+        {
+          txid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          satoshis: 7679241,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 0,
+          timestamp: 1461342707724
+        },
+        {
+          txid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          satoshis: 7679241,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 1,
+          timestamp: 1461342707724
+        },
+        {
+          txid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          satoshis: 7679241,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          timestamp: 1461342707724,
+          index: 2,
+        },
+        {
+          txid: 'e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce',
+          satoshis: -7679241,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 0,
+          timestamp: 1461342707725,
+          prevtxid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          prevout: 0
+        },
+        {
+          txid: 'e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce',
+          satoshis: -7679241,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 0,
+          timestamp: 1461342707725,
+          prevtxid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          prevout: 1
+        },
+        {
+          txid: 'e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce',
+          satoshis: -7679241,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 1,
+          timestamp: 1461342707725,
+          prevtxid: '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0',
+          prevout: 2
+        },
+        {
+          txid: 'e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce',
+          satoshis: 100000,
+          address: '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo',
+          index: 1,
+          timestamp: 1461342833133
+        }
+      ];
+      var bitcoind = new BitcoinService(baseConfig);
+      var confirmedUtxos = [];
+      bitcoind.nodes.push({
+        client: {
+          getAddressUtxos: sinon.stub().callsArgWith(1, null, {
+            result: confirmedUtxos
+          }),
+          getAddressMempool: sinon.stub().callsArgWith(1, null, {
+            result: deltas
+          })
+        }
+      });
+      var options = {
+        queryMempool: true
+      };
+      var address = '1Cj4UZWnGWAJH1CweTMgPLQMn26WRMfXmo';
+      bitcoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
+        if (err) {
+          return done(err);
+        }
+        utxos.length.should.equal(1);
+        utxos[0].address.should.equal(address);
+        utxos[0].txid.should.equal('e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce');
+        utxos[0].outputIndex.should.equal(1);
+        utxos[0].script.should.equal('76a914809dc14496f99b6deb722cf46d89d22f4beb8efd88ac');
+        utxos[0].timestamp.should.equal(1461342833133);
         done();
       });
     });

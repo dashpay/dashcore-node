@@ -6,7 +6,7 @@ var sinon = require('sinon');
 var proxyquire = require('proxyquire');
 
 describe('#defaultConfig', function() {
-  var expectedExecPath = path.resolve(__dirname, '../../bin/dashd');
+  var expectedExecPath = path.resolve(__dirname, process.env.HOME, './.bitcore/data/dashd');
 
   it('will return expected configuration', function() {
     var config = JSON.stringify({
