@@ -20,7 +20,7 @@ var index = require('..');
 var Transaction = bitcore.Transaction;
 var BitcoreNode = index.Node;
 var BitcoinService = index.services.Bitcoin;
-var testWIF = 'cSdkPxkAjA4HDr5VHgsebAPDEh9Gyub4HK8UJr2DFGGqKKy4K5sG';
+var testWIF = 'cR4qogdN9UxLZJXCNFNwDRRZNeLRWuds9TTSuLNweFVjiaE4gPaq';
 var testKey;
 var client;
 
@@ -32,7 +32,7 @@ describe('Node Functionality', function() {
   var regtest;
 
   before(function(done) {
-    this.timeout(20000);
+    this.timeout(200000);
 
     var datadir = __dirname + '/data';
 
@@ -53,7 +53,7 @@ describe('Node Functionality', function() {
             config: {
               spawn: {
                 datadir: datadir,
-                exec: path.resolve(__dirname, '../bin/bitcoind')
+                exec: path.resolve(__dirname, process.env.HOME, './.bitcore/data/dashd')
               }
             }
           }
@@ -105,7 +105,7 @@ describe('Node Functionality', function() {
   });
 
   after(function(done) {
-    this.timeout(20000);
+    this.timeout(200000);
     node.stop(function(err, result) {
       if(err) {
         throw err;
@@ -147,7 +147,7 @@ describe('Node Functionality', function() {
     var address;
     var unspentOutput;
     before(function(done) {
-      this.timeout(10000);
+      this.timeout(100000);
       address = testKey.toAddress(regtest).toString();
       var startHeight = node.services.bitcoind.height;
       node.services.bitcoind.on('tip', function(height) {
@@ -229,7 +229,7 @@ describe('Node Functionality', function() {
     });
     describe('History', function() {
 
-      this.timeout(20000);
+      this.timeout(200000);
 
       var testKey2;
       var address2;
@@ -255,19 +255,19 @@ describe('Node Functionality', function() {
           }
         });
 
-        testKey2 = bitcore.PrivateKey.fromWIF('cNfF4jXiLHQnFRsxaJyr2YSGcmtNYvxQYSakNhuDGxpkSzAwn95x');
+        testKey2 = bitcore.PrivateKey.fromWIF('7sTymLSNn9SoCrb2awe7fUcjTHns8HXDWNnCzKqC1K5D1GXzTJv');
         address2 = testKey2.toAddress(regtest).toString();
 
-        testKey3 = bitcore.PrivateKey.fromWIF('cVTYQbaFNetiZcvxzXcVMin89uMLC43pEBMy2etgZHbPPxH5obYt');
+        testKey3 = bitcore.PrivateKey.fromWIF('7rx9vzpRJpydL8p6wMX71U1UTtkWkymBJMxHoYduBn4KnL5c591');
         address3 = testKey3.toAddress(regtest).toString();
 
-        testKey4 = bitcore.PrivateKey.fromWIF('cPNQmfE31H2oCUFqaHpfSqjDibkt7XoT2vydLJLDHNTvcddCesGw');
+        testKey4 = bitcore.PrivateKey.fromWIF('7s7WGhd7hB3e1ZSpwhd2hyc9aSkDYamEYNqvYrXHPJbgvfMmXec');
         address4 = testKey4.toAddress(regtest).toString();
 
-        testKey5 = bitcore.PrivateKey.fromWIF('cVrzm9gCmnzwEVMGeCxY6xLVPdG3XWW97kwkFH3H3v722nb99QBF');
+        testKey5 = bitcore.PrivateKey.fromWIF('7rtwSf4qmiGuaxJGPQzHZ2SsiocXfVitoFrfQt17EFMgsA491pd');
         address5 = testKey5.toAddress(regtest).toString();
 
-        testKey6 = bitcore.PrivateKey.fromWIF('cPfMesNR2gsQEK69a6xe7qE44CZEZavgMUak5hQ74XDgsRmmGBYF');
+        testKey6 = bitcore.PrivateKey.fromWIF('7r859FVkts4gRPDB3xzjGMwVkvDxEoV9EVTNW9ijwy4Riqankdw');
         address6 = testKey6.toAddress(regtest).toString();
 
         var tx = new Transaction();
@@ -663,8 +663,8 @@ describe('Node Functionality', function() {
         var memAddress = bitcore.PrivateKey().toAddress(node.network).toString();
         var tx = new Transaction();
         tx.from(unspentOutput);
-        tx.to(memAddress, unspentOutput.satoshis - 1000);
-        tx.fee(1000);
+        tx.to(memAddress, unspentOutput.satoshis - 2000);
+        tx.fee(2000);
         tx.sign(testKey);
 
         node.services.bitcoind.sendTransaction(tx.serialize(), function(err, hash) {
@@ -684,7 +684,7 @@ describe('Node Functionality', function() {
   });
 
   describe('Orphaned Transactions', function() {
-    this.timeout(8000);
+    this.timeout(80000);
     var orphanedTransaction;
 
     before(function(done) {
