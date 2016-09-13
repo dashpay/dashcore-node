@@ -1,7 +1,7 @@
 Bitcore Node Dash
 ============
 
-A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to [Dash Core with additional indexing](https://github.com/snogcel/dash/tree/v0.12.1.x) for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
+A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to [Dash Core v0.12.1.x](https://github.com/dashpay/dash/tree/v0.12.1.x) for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
 
 ## Install
 
@@ -9,12 +9,11 @@ A Dash full node for building applications and services with Node.js. A node is 
 npm install -g bitcore-node-dash
 ```
 
-Note: For your convenience, we distribute bitcoind binaries for x86_64 Linux and x86_64 Mac OS X. Upon npm install, the binaries for your platform will be downloaded. For more detailed installation instructions, or if you want to compile the project yourself, then please see the Bitcore branch of [Bitcoin Core with additional indexing](https://github.com/bitpay/bitcoin/tree/0.12.1-bitcore).
-Installation of bitcore-node-dash can also be performed using a Dockerfile. Please note that this Dockerfile is still under development and should be considered an 'Alpha' version, see [docker-bitcore_insight_dash](https://github.com/moocowmoo/docker-bitcore_insight_dash) for more details.
+Note: For your convenience, we distribute bitcoind binaries for x86_64 Linux and x86_64 Mac OS X. Upon npm install, the binaries for your platform will be downloaded. For more detailed installation instructions, or if you want to compile the project yourself please see [Dash Core v0.12.1.x](https://github.com/dashpay/dash/tree/v0.12.1.x).
 
 ## Prerequisites
 
-- Dash Core (v0.12.1.x) with support for additional indexing *(see above)*
+- Dash Core (v0.12.1.x)
 - Node.js v0.10, v0.12, v4 or v5
 - ZeroMQ *(libzmq3-dev for Ubuntu/Debian or zeromq on OSX)*
 - ~20GB of disk storage
@@ -33,8 +32,6 @@ bitcore-node-dash start
 ```
 
 This will create a directory with configuration files for your node and install the necessary dependencies.
-
-Please note that [Dash Core with additional indexing](https://github.com/snogcel/dash/tree/v0.12.1.x) must be compiled seperately. Once completed the dashd binary should be placed into the &lt;dash-data-dir&gt; folder specified during node creation.
 
 For more information about (and developing) services, please see the [Service Documentation](docs/services.md).
 
