@@ -5177,6 +5177,47 @@ describe('Bitcoin Service', function() {
 
   });
 
+  describe('#getMNlist', function() {
+    var MNdetails = {
+      '3e739c0219595365c28cb8e14606f18d183500ee13bbedfee8c755a502cbc70a-1': 'NEW_START_REQUIRED 70206 yXXQNnSDhijos1Ucq9NiJMEcFRF6nZGjKq 1486207842   170674          0      0 88.99.15.34:19999',
+      'a9dec34daa02d7537d47cefdb2c5131585f97eb8b90c1ccf63675ed3129ca704-1': 'NEW_START_REQUIRED 70206 yaffS5bPkfZ211SXbvNyQxFRRP5tL2dZtN 1486196162        0          0      0 176.31.145.17:19999',
+      '88f33da9565bfa2e793402900a894d55ad96039c82ca0ef6919d33141761c4c9-0': 'NEW_START_REQUIRED 70206 yTJSNXHqp1uxSTVQDm1abPUsQJKgvcUqsb 1487206254   302622          0      0 5.45.104.74:19999',
+    };
+    it('will give rpc error', function(done) {
+      var bitcoind = new BitcoinService(baseConfig);
+      var masternodelist = sinon.stub().callsArgWith(1, 'full', {message: 'error', code: -1});
+      bitcoind.nodes.push({
+        client: {
+          masternodelist: masternodelist
+        }
+      });
+      bitcoind.getMNlist(function(err, response) {
+        should.exist(err);
+        err.should.be.an.instanceof(errors.RPCError);
+        done();
+      });
+    });
+    it('will call client masternode full and give result', function(done) {
+      var bitcoind = new BitcoinService(baseConfig);
+      bitcoind.node.getNetworkName = sinon.stub().returns('testnet');
+      var masternodelist = sinon.stub().callsArgWith(1, null, {
+        result: MNdetails
+      });
+      bitcoind.nodes.push({
+        client: {
+          masternodelist: masternodelist
+        }
+      });
+      bitcoind.getMNlist(function(err, response) {
+        if (err) {
+          return done(err);
+        }
+        response.should.equal(MNdetails);
+        done();
+      });
+    });
+  });
+
   describe('#generateBlock', function() {
     it('will give rpc error', function(done) {
       var bitcoind = new BitcoinService(baseConfig);
