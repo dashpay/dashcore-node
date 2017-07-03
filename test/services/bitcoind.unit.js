@@ -105,7 +105,7 @@ describe('Bitcoin Service', function() {
       var bitcoind = new BitcoinService(baseConfig);
       var methods = bitcoind.getAPIMethods();
       should.exist(methods);
-      methods.length.should.equal(21);
+      methods.length.should.equal(22);
     });
   });
 
@@ -5175,6 +5175,183 @@ describe('Bitcoin Service', function() {
       });
     });
 
+  });
+
+  describe('#getMNlist', function() {
+    var MNdetails = {
+      '3e739c0219595365c28cb8e14606f18d183500ee13bbedfee8c755a502cbc70a-1': 'NEW_START_REQUIRED 70206 yXXQNnSDhijos1Ucq9NiJMEcFRF6nZGjKq 1486207842   170674          0      0 88.99.15.34:19999',
+      'a9dec34daa02d7537d47cefdb2c5131585f97eb8b90c1ccf63675ed3129ca704-1': 'NEW_START_REQUIRED 70206 yaffS5bPkfZ211SXbvNyQxFRRP5tL2dZtN 1486196162        0          0      0 176.31.145.17:19999',
+      '88f33da9565bfa2e793402900a894d55ad96039c82ca0ef6919d33141761c4c9-0': 'NEW_START_REQUIRED 70206 yTJSNXHqp1uxSTVQDm1abPUsQJKgvcUqsb 1487206254   302622          0      0 5.45.104.74:19999',
+    };
+    it('will give rpc error', function(done) {
+      var bitcoind = new BitcoinService(baseConfig);
+      var masternodelist = sinon.stub().callsArgWith(1, 'full', {message: 'error', code: -1});
+      bitcoind.nodes.push({
+        client: {
+          masternodelist: masternodelist
+        }
+      });
+      bitcoind.getMNlist(function(err, response) {
+        should.exist(err);
+        err.should.be.an.instanceof(errors.RPCError);
+        done();
+      });
+    });
+    it('will call client masternode full and give result', function(done) {
+      var bitcoind = new BitcoinService(baseConfig);
+      bitcoind.node.getNetworkName = sinon.stub().returns('testnet');
+      var masternodelist = sinon.stub().callsArgWith(1, null, {
+        result: MNdetails
+      });
+      bitcoind.nodes.push({
+        client: {
+          masternodelist: masternodelist
+        }
+      });
+      bitcoind.getMNlist(function(err, response) {
+        if (err) {
+          return done(err);
+        }
+        response.should.equal(MNdetails);
+        done();
+      });
+    });
+  });
+
+  describe('#mnbroadcast', function() {
+    var mbhex = "01c6187244ca040a530fad098ef0fa5e2bad003d295ce5dce0ed276f9ea861a9300100000000ffffffff00000000000000000000ffff8582674e4e1f210381adc18569d94a7db838ef87cc001c05be117c9ca71dffede481315b8e90845341044068fb4a1b2ed6693770c8ac6079c14fb76a1a14b0ff27b5cbe3e648f97649b725c6584f99a8bd895f6e56ed8723027631d986cfc9c490f270beda6ff5ac9102411f9cc92d1a6758fbeb2c0149054513bfe2bd0c2627bed4ddaa6ea5333a633c8cca4642b15148d575f8f43d1ae0c7a357b18197121522380dac2286ba9a5609ec5cb6f9c258000000003e120100c6187244ca040a530fad098ef0fa5e2bad003d295ce5dce0ed276f9ea861a9300100000000ffffffff232a907d9261bbd92f6e0a32778bca9dcfc0977293a42989cc4446e4e7000000b6f9c25800000000411b628c4bcc2bdabcc0aa56e4285fe5782d2c0ef36a5cf302a60542b6d56e8456174cb6f600fe67a29f724b40672bf9ab8093f403b61156dcae42063926250aab62"
+    var res = {
+                "c6a3d86b5ff8886f479129b9d70e0d100ffbaf49b71f04f0a3ce2b283d0a177f": {
+                  "vin": "CTxIn(COutPoint(30a961a89e6f27ede0dce55c293d00ad2b5efaf08e09ad0f530a04ca447218c6, 1), scriptSig=)",
+                  "addr": "133.130.103.78:19999",
+                  "pubKeyCollateralAddress": "yYEUWyipkrkiprStjDNq6eCm154A3G7sK9",
+                  "pubKeyMasternode": "yQz7EQnCuNKxaUjiMTEt78o7yATY1Qu5AZ",
+                  "vchSig": "H5zJLRpnWPvrLAFJBUUTv+K9DCYnvtTdqm6lMzpjPIzKRkKxUUjVdfj0PRrgx6NXsYGXEhUiOA2sIoa6mlYJ7Fw=",
+                  "sigTime": 1489172918,
+                  "protocolVersion": 70206,
+                  "nLastDsq": 0,
+                  "lastPing": {
+                    "vin": "CTxIn(COutPoint(30a961a89e6f27ede0dce55c293d00ad2b5efaf08e09ad0f530a04ca447218c6, 1), scriptSig=)",
+                    "blockHash": "000000e7e44644cc8929a4937297c0cf9dca8b77320a6e2fd9bb61927d902a23",
+                    "sigTime": 1489172918,
+                    "vchSig": "G2KMS8wr2rzAqlbkKF/leC0sDvNqXPMCpgVCttVuhFYXTLb2AP5nop9yS0BnK/mrgJP0A7YRVtyuQgY5JiUKq2I="
+                  }
+                },
+                "overall": "Successfully decoded broadcast messages for 1 masternodes, failed to decode 0, total 1"
+              }
+    it('will give rpc error', function(done) {
+      var bitcoind = new BitcoinService(baseConfig);
+      var masternodebroadcast = sinon.stub().callsArgWith(2, {message: 'error', code: -1});
+      bitcoind.nodes.push({
+        client: {
+          masternodebroadcast: masternodebroadcast
+        }
+      });
+      bitcoind.mnbroadcast("decode", mbhex, function(err, response) {
+        should.exist(err);
+        err.should.be.an.instanceof(errors.RPCError);
+        done();
+      });
+    });
+    it('will call client generate and give result', function(done) {
+      var bitcoind = new BitcoinService(baseConfig);
+      var masternodebroadcast = sinon.stub().callsArgWith(2, null, {
+        result: res
+      });
+      bitcoind.nodes.push({
+        client: {
+          masternodebroadcast: masternodebroadcast
+        }
+      });
+
+      bitcoind.mnbroadcast("decode", mbhex, function(err, response) {
+        if (err) {
+          return done(err);
+        }
+        response.should.equal(res);
+        done();
+      });
+    });
+  });
+
+    describe('#decodeRawTransaction', function() {
+    var txhash="01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff06039e8a020101ffffffff0240230e4300000000232102ee929131dfba663aabadb6677cbbe5bf001525b445e5751d8db4a717f460b4ecac40230e43000000001976a914cebcd67d135c167302b1057eba8f3cf0bb1fa9c088ac00000000";
+    var response = {
+                "result": {
+                  "txid": "2c790755ee4b14d71a17bd9de9977b18aa55fef246c28c5a7631e9c68be813e8",
+                  "size": 135,
+                  "version": 1,
+                  "locktime": 0,
+                  "vin": [
+                    {
+                      "coinbase": "039e8a020101",
+                      "sequence": 4294967295
+                    }
+                  ],
+                  "vout": [
+                    {
+                      "value": 11.25,
+                      "valueSat": 1125000000,
+                      "n": 0,
+                      "scriptPubKey": {
+                        "asm": "02ee929131dfba663aabadb6677cbbe5bf001525b445e5751d8db4a717f460b4ec OP_CHECKSIG",
+                        "hex": "2102ee929131dfba663aabadb6677cbbe5bf001525b445e5751d8db4a717f460b4ecac",
+                        "reqSigs": 1,
+                        "type": "pubkey",
+                        "addresses": [
+                          "yi2ACM4TLtkcThKMuB6ABEGnsfgVVFL7vm"
+                        ]
+                      }
+                    },
+                    {
+                      "value": 11.25,
+                      "valueSat": 1125000000,
+                      "n": 1,
+                      "scriptPubKey": {
+                        "asm": "OP_DUP OP_HASH160 cebcd67d135c167302b1057eba8f3cf0bb1fa9c0 OP_EQUALVERIFY OP_CHECKSIG",
+                        "hex": "76a914cebcd67d135c167302b1057eba8f3cf0bb1fa9c088ac",
+                        "reqSigs": 1,
+                        "type": "pubkeyhash",
+                        "addresses": [
+                          "yfAaGQNFHF2Q8NGZP7ZZDASjgskJAJoGdH"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "error": null,
+                "id": 73749
+              }
+    it('will give rpc error', function(done) {
+      var bitcoind = new BitcoinService(baseConfig);
+      var decoderawtransaction = sinon.stub().callsArgWith(1, {message: 'error', code: -1});
+      bitcoind.nodes.push({
+        client: {
+          decoderawtransaction: decoderawtransaction
+        }
+      });
+      bitcoind.decodeRawTransaction(txhash, function(err) {
+        should.exist(err);
+        err.should.be.an.instanceof(errors.RPCError);
+        done();
+      });
+    });
+    it('will call client generate and give result', function(done) {
+      var bitcoind = new BitcoinService(baseConfig);
+      var decoderawtransaction = sinon.stub().callsArgWith(1, null, response);
+      bitcoind.nodes.push({
+        client: {
+          decoderawtransaction: decoderawtransaction
+        }
+      });
+      bitcoind.decodeRawTransaction(txhash, function(err, response) {
+        if (err) {
+          return done(err);
+        }
+        response.should.equal(response);
+        done();
+      });
+    });
   });
 
   describe('#generateBlock', function() {
