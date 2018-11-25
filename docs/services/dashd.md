@@ -1,46 +1,33 @@
-# Bitcoin Service
+# Dash Service
 
-The Bitcoin Service is a Node.js interface to [Bitcoin Core](https://github.com/bitcoin/bitcoin) for querying information about the bitcoin block chain. It will manage starting and stopping `bitcoind` or connect to several running `bitcoind` processes. It uses a branch of a [branch of Bitcoin Core](https://github.com/bitpay/bitcoin/tree/0.12-bitcore) with additional indexes for querying information about addresses and blocks. Results are cached for performance and there are several additional API methods added for common queries.
+The Dash Service is a Node.js interface to [Dash Core](https://github.com/dashpay/dash) for querying information about the Dash block chain. It will connect to a running `dashd` process. It uses additional, optional indexes in Dash Core for querying information about addresses and blocks. Results are cached for performance and there are several additional API methods added for common queries.
 
 ## Configuration
 
-The default configuration will include a "spawn" configuration in "bitcoind". This defines the location of the block chain database and the location of the `bitcoind` daemon executable. The below configuration points to a local clone of `bitcoin`, and will start `bitcoind` automatically with your Node.js application.
+The configuration should include a "connect" configuration in "dashd". This defines the JSONRPC connection information for separately managed `dashd` processes. It's also possible to connect to several separately managed `dashd` processes with round-robin querying, for example:
 
 ```json
   "servicesConfig": {
-    "bitcoind": {
-      "spawn": {
-        "datadir": "/home/bitcore/.bitcoin",
-        "exec": "/home/bitcore/bitcoin/src/bitcoind"
-      }
-    }
-  }
-```
-
-It's also possible to connect to separately managed `bitcoind` processes with round-robin quering, for example:
-
-```json
-  "servicesConfig": {
-    "bitcoind": {
+    "dashd": {
       "connect": [
         {
           "rpchost": "127.0.0.1",
           "rpcport": 30521,
-          "rpcuser": "bitcoin",
+          "rpcuser": "dashrpc",
           "rpcpassword": "local321",
           "zmqpubrawtx": "tcp://127.0.0.1:30611"
         },
         {
           "rpchost": "127.0.0.1",
           "rpcport": 30522,
-          "rpcuser": "bitcoin",
+          "rpcuser": "dashrpc",
           "rpcpassword": "local321",
           "zmqpubrawtx": "tcp://127.0.0.1:30622"
         },
         {
           "rpchost": "127.0.0.1",
           "rpcport": 30523,
-          "rpcuser": "bitcoin",
+          "rpcuser": "dashrpc",
           "rpcpassword": "local321",
           "zmqpubrawtx": "tcp://127.0.0.1:30633"
         }
@@ -56,7 +43,7 @@ It's also possible to connect to separately managed `bitcoind` processes with ro
 Methods are available by directly interfacing with the service:
 
 ```js
-node.services.bitcoind.<methodName>
+node.services.dashd.<methodName>
 ```
 
 ### Chain
@@ -67,12 +54,12 @@ node.services.bitcoind.<methodName>
 // gives the block hashes sorted from low to high within a range of timestamps
 var high = 1460393372; // Mon Apr 11 2016 12:49:25 GMT-0400 (EDT)
 var low = 1460306965; // Mon Apr 10 2016 12:49:25 GMT-0400 (EDT)
-node.services.bitcoind.getBlockHashesByTimestamp(high, low, function(err, blockHashes) {
+node.services.dashd.getBlockHashesByTimestamp(high, low, function(err, blockHashes) {
   //...
 });
 
 // get the current tip of the chain
-node.services.bitcoind.getBestBlockHash(function(err, blockHash) {
+node.services.dashd.getBestBlockHash(function(err, blockHash) {
   //...
 })
 ```
@@ -81,17 +68,17 @@ node.services.bitcoind.getBestBlockHash(function(err, blockHash) {
 
 ```js
 // gives a boolean if the daemon is fully synced (not the initial block download)
-node.services.bitcoind.isSynced(function(err, synced) {
+node.services.dashd.isSynced(function(err, synced) {
   //...
 })
 
 // gives the current estimate of blockchain download as a percentage
-node.services.bitcoind.syncPercentage(function(err, percent) {
+node.services.dashd.syncPercentage(function(err, percent) {
   //...
 });
 
 // gives information about the chain including total number of blocks
-node.services.bitcoind.getInfo(function(err, info) {
+node.services.dashd.getInfo(function(err, info) {
   //...
 });
 ```
@@ -101,7 +88,7 @@ node.services.bitcoind.getInfo(function(err, info) {
 ```js
 // will generate a block for the "regtest" network (development purposes)
 var numberOfBlocks = 10;
-node.services.bitcoind.generateBlock(numberOfBlocks, function(err, blockHashes) {
+node.services.dashd.generateBlock(numberOfBlocks, function(err, blockHashes) {
   //...
 });
 ```
@@ -114,7 +101,7 @@ It's possible to query blocks by both block hash and by height. Blocks are given
 
 ```js
 var blockHeight = 0;
-node.services.bitcoind.getRawBlock(blockHeight, function(err, blockBuffer) {
+node.services.dashd.getRawBlock(blockHeight, function(err, blockBuffer) {
   if (err) {
     throw err;
   }
@@ -123,17 +110,17 @@ node.services.bitcoind.getRawBlock(blockHeight, function(err, blockBuffer) {
 };
 
 // get a bitcore object of the block (as above)
-node.services.bitcoind.getBlock(blockHash, function(err, block) {
+node.services.dashd.getBlock(blockHash, function(err, block) {
   //...
 };
 
 // get only the block header and index (including chain work, height, and previous hash)
-node.services.bitcoind.getBlockHeader(blockHeight, function(err, blockHeader) {
+node.services.dashd.getBlockHeader(blockHeight, function(err, blockHeader) {
   //...
 });
 
 // get the block with a list of txids
-node.services.bitcoind.getBlockOverview(blockHash, function(err, blockOverview) {
+node.services.dashd.getBlockOverview(blockHash, function(err, blockOverview) {
   //...
 };
 ```
@@ -143,8 +130,8 @@ node.services.bitcoind.getBlockOverview(blockHash, function(err, blockOverview) 
 Get a transaction asynchronously by reading it from disk:
 
 ```js
-var txid = '7426c707d0e9705bdd8158e60983e37d0f5d63529086d6672b07d9238d5aa623';
-node.services.bitcoind.getRawTransaction(txid, function(err, transactionBuffer) {
+var txid = '3dba349df7225e071179256eea2195083cd89985124be3b05e48de509cf1e268';
+node.services.dashd.getRawTransaction(txid, function(err, transactionBuffer) {
   if (err) {
     throw err;
   }
@@ -152,12 +139,12 @@ node.services.bitcoind.getRawTransaction(txid, function(err, transactionBuffer) 
 });
 
 // get a bitcore object of the transaction (as above)
-node.services.bitcoind.getTransaction(txid, function(err, transaction) {
+node.services.dashd.getTransaction(txid, function(err, transaction) {
   //...
 });
 
 // retrieve the transaction with input values, fees, spent and block info
-node.services.bitcoind.getDetailedTransaction(txid, function(err, transaction) {
+node.services.dashd.getDetailedTransaction(txid, function(err, transaction) {
   //...
 });
 ```
@@ -166,11 +153,11 @@ Send a transaction to the network:
 
 ```js
 var numberOfBlocks = 3;
-node.services.bitcoind.estimateFee(numberOfBlocks, function(err, feesPerKilobyte) {
+node.services.dashd.estimateFee(numberOfBlocks, function(err, feesPerKilobyte) {
   //...
 });
 
-node.services.bitcoind.sendTransaction(transaction.serialize(), function(err, hash) {
+node.services.dashd.sendTransaction(transaction.serialize(), function(err, hash) {
   //...
 });
 ```
@@ -182,8 +169,8 @@ node.services.bitcoind.sendTransaction(transaction.serialize(), function(err, ha
 One of the most common uses will be to retrieve unspent outputs necessary to create a transaction, here is how to get the unspent outputs for an address:
 
 ```js
-var address = 'mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW';
-node.services.bitcoind.getAddressUnspentOutputs(address, options, function(err, unspentOutputs) {
+var address = 'yegvhonA7HaRvBqp57RVncFAuuqRbMQNXk';
+node.services.dashd.getAddressUnspentOutputs(address, options, function(err, unspentOutputs) {
   // see below
 });
 ```
@@ -193,12 +180,12 @@ The `unspentOutputs` will have the format:
 ```js
 [
   {
-    address: 'mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW',
-    txid: '9d956c5d324a1c2b12133f3242deff264a9b9f61be701311373998681b8c1769',
+    address: 'yegvhonA7HaRvBqp57RVncFAuuqRbMQNXk',
+    txid: '65e991800c93f8272c38f28366ca901d3bb9096d34598f2903c5578ec277c85d',
     outputIndex: 1,
     height: 150,
-    satoshis: 1000000000,
-    script: '76a9140b2f0a0c31bfe0406b0ccc1381fdbe311946dadc88ac',
+    satoshis: 281250000,
+    script: '76a914c982406f087057a97456e48d335546ae8d93a03c88ac',
     confirmations: 3
   }
 ]
@@ -207,8 +194,8 @@ The `unspentOutputs` will have the format:
 **View Balances**
 
 ```js
-var address = 'mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW';
-node.services.bitcoind.getAddressBalance(address, options, function(err, balance) {
+var address = 'yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX';
+node.services.dashd.getAddressBalance(address, options, function(err, balance) {
   // balance will be in satoshis with "received" and "balance"
 });
 ```
@@ -218,13 +205,13 @@ node.services.bitcoind.getAddressBalance(address, options, function(err, balance
 This method will give history of an address limited by a range of block heights by using the "start" and "end" arguments. The "start" value is the more recent, and greater, block height. The "end" value is the older, and lesser, block height. This feature is most useful for synchronization as previous history can be omitted. Furthermore for large ranges of block heights, results can be paginated by using the "from" and "to" arguments.
 
 ```js
-var addresses = ['mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW'];
+var addresses = ['yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX'];
 var options = {
   start: 345000,
   end: 344000,
   queryMempool: true
 };
-node.services.bitcoind.getAddressHistory(addresses, options, function(err, history) {
+node.services.dashd.getAddressHistory(addresses, options, function(err, history) {
   // see below
 });
 ```
@@ -237,7 +224,7 @@ The history format will be:
   items: [
     {
       addresses: {
-        'mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW': {
+        'yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX': {
           inputIndexes: [],
           outputIndexes: [0]
         }
@@ -252,12 +239,12 @@ The history format will be:
 **View Address Summary**
 
 ```js
-var address = 'mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW';
+var address = 'yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX';
 var options = {
   noTxList: false
 };
 
-node.services.bitcoind.getAddressSummary(address, options, function(err, summary) {
+node.services.dashd.getAddressSummary(address, options, function(err, summary) {
   // see below
 });
 ```
@@ -286,43 +273,43 @@ The `summary` will have the format (values are in satoshis):
 
 
 ## Events
-The Bitcoin Service exposes two events via the Bus, and there are a few events that can be directly registered:
+The Dash Service exposes two events via the Bus, and there are a few events that can be directly registered:
 
 ```js
-node.services.bitcoind.on('tip', function(blockHash) {
+node.services.dashd.on('tip', function(blockHash) {
   // a new block tip has been added, if there is a rapid update (with a second) this will not emit every tip update
 });
 
-node.services.bitcoind.on('tx', function(transactionBuffer) {
+node.services.dashd.on('tx', function(transactionBuffer) {
   // a new transaction has entered the mempool
 });
 
-node.services.bitcoind.on('block', function(blockHash) {
+node.services.dashd.on('block', function(blockHash) {
   // a new block has been added
 });
 ```
 
 For details on instantiating a bus for a node, see the [Bus Documentation](../bus.md).
-- Name: `bitcoind/rawtransaction`
-- Name: `bitcoind/hashblock`
-- Name: `bitcoind/addresstxid`, Arguments: [address, address...]
+- Name: `dashd/rawtransaction`
+- Name: `dashd/hashblock`
+- Name: `dashd/addresstxid`, Arguments: [address, address...]
 
 **Examples:**
 
 ```js
-bus.subscribe('bitcoind/rawtransaction');
-bus.subscribe('bitcoind/hashblock');
-bus.subscribe('bitcoind/addresstxid', ['13FMwCYz3hUhwPcaWuD2M1U2KzfTtvLM89']);
+bus.subscribe('dashd/rawtransaction');
+bus.subscribe('dashd/hashblock');
+bus.subscribe('dashd/addresstxid', ['XxoNntPX7RNFKHUhuGNUthb1UQpYnKuCsk']);
 
-bus.on('bitcoind/rawtransaction', function(transactionHex) {
+bus.on('dashd/rawtransaction', function(transactionHex) {
   //...
 });
 
-bus.on('bitcoind/hashblock', function(blockhashHex) {
+bus.on('dashd/hashblock', function(blockhashHex) {
   //...
 });
 
-bus.on('bitcoind/addresstxid', function(data) {
+bus.on('dashd/addresstxid', function(data) {
   // data.address;
   // data.txid;
 });
