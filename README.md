@@ -10,6 +10,7 @@ A Dash full node for building applications and services with Node.js. A node is 
 ```bash
 git clone https://github.com/dashevo/dashcore-node
 cd dashcore-node
+npm install
 ./bin/dashcore-node start
 ```
 
