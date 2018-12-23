@@ -1,7 +1,7 @@
 Dashcore Node
 ============
 
-A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to [Dash Core (dashd) v0.12.3](https://github.com/dashpay/dash/tree/v0.12.3.x) for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
+A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to [Dash Core (dashd) v0.12.1.x](https://github.com/dashpay/dash/tree/v0.12.1.x) for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
 
 ## Usages
 
@@ -10,7 +10,6 @@ A Dash full node for building applications and services with Node.js. A node is 
 ```bash
 git clone https://github.com/dashevo/dashcore-node
 cd dashcore-node
-npm install
 ./bin/dashcore-node start
 ```
 
@@ -19,7 +18,7 @@ If it doesn't exist, it will create it, with basic task to connect to dashd.
 
 Some plugins are available :
 
-- Insight-API : `./bin/dashcore-node addservice @dashevo/insight-api`
+- Insight-API : `./bin/dashcore-node addservice @dashevo/insight-api
 - Insight-UI : `./bin/dashcore-node addservice @dashevo/insight-ui`
 
 You also might want to add these index to your dash.conf file :
@@ -50,8 +49,8 @@ node.on('ready', function() {
 
 ## Prerequisites
 
-- Dash Core (dashd) (v0.12.3.x) with support for additional indexing *(see above)*
-- Node.js v6+
+- Dash Core (dashd) (v0.12.1.x) with support for additional indexing *(see above)*
+- Node.js v0.10, v0.12, v4 or v5
 - ZeroMQ *(libzmq3-dev for Ubuntu/Debian or zeromq on OSX)*
 - ~20GB of disk storage
 - ~1GB of RAM
@@ -127,6 +126,5 @@ Please send pull requests for bug fixes, code optimization, and ideas for improv
 Code released under [the MIT license](https://github.com/dashevo/dashcore-node/blob/master/LICENSE).
 
 Copyright 2013-2015 BitPay, Inc.
-Copyright 2016-2018 Dash Core Group, Inc.
 
 - bitcoin: Copyright (c) 2009-2015 Bitcoin Core Developers (MIT License)
