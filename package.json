@@ -43,7 +43,7 @@
     "dashd"
   ],
   "dependencies": {
-    "@dashevo/dashcore-lib": "^1.0.0-alpha.24",
+    "@dashevo/dashcore-lib": "^0.16.1",
     "@dashevo/dashd-rpc": "^1.2.1",
     "async": "^2.6.1",
     "body-parser": "^1.18.3",
