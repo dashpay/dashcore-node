@@ -1,7 +1,7 @@
 Dashcore Node
 ============
 
-A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to [Dash Core (dashd) v0.12.3](https://github.com/dashpay/dash/tree/v0.12.3.x) for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
+A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to [Dash Core (dashd) v0.13.0](https://github.com/dashpay/dash/tree/v0.13.0.x) for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
 
 ## Usages
 
@@ -50,8 +50,8 @@ node.on('ready', function() {
 
 ## Prerequisites
 
-- Dash Core (dashd) (v0.12.3.x) with support for additional indexing *(see above)*
-- Node.js v6+
+- Dash Core (dashd) (v0.13.0) with support for additional indexing *(see above)*
+- Node.js v6 - v8 (versions higher than v8 are not yet supported)
 - ZeroMQ *(libzmq3-dev for Ubuntu/Debian or zeromq on OSX)*
 - ~20GB of disk storage
 - ~1GB of RAM
@@ -126,7 +126,6 @@ Please send pull requests for bug fixes, code optimization, and ideas for improv
 
 Code released under [the MIT license](https://github.com/dashevo/dashcore-node/blob/master/LICENSE).
 
-Copyright 2013-2015 BitPay, Inc.
 Copyright 2016-2018 Dash Core Group, Inc.
 
 - bitcoin: Copyright (c) 2009-2015 Bitcoin Core Developers (MIT License)
