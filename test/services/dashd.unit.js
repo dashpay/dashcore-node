@@ -1478,16 +1478,30 @@ describe('Dash Service', function() {
     });
   });
 
-  /*
   describe('#_initZmqSubSocket', function() {
     it('will setup zmq socket', function() {
+      var socket = new EventEmitter();
+      socket.monitor = sinon.stub();
+      socket.connect = sinon.stub();
+      var socketFunc = function() {
+        return socket;
+      };
+      var DashService = proxyquire('../../lib/services/dashd', {
+        zeromq: {
+          socket: socketFunc
+        }
+      });
       var dashd = new DashService(baseConfig);
       var node = {};
-      dashd._initZmqSubSocket(node, baseConfig.spawn.zmqpubrawtx);
-      should.exist(node.zmqSubSocket);
+      dashd._initZmqSubSocket(node, 'url');
+      node.zmqSubSocket.should.equal(socket);
+      socket.connect.callCount.should.equal(1);
+      socket.connect.args[0][0].should.equal('url');
+      socket.monitor.callCount.should.equal(1);
+      socket.monitor.args[0][0].should.equal(500);
+      socket.monitor.args[0][1].should.equal(0);
     });
   });
-  */
 
   describe('#_checkReindex', function() {
     var sandbox = sinon.sandbox.create();
