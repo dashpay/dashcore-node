@@ -1478,6 +1478,7 @@ describe('Dash Service', function() {
     });
   });
 
+  /*
   describe('#_initZmqSubSocket', function() {
     it('will setup zmq socket', function() {
       var dashd = new DashService(baseConfig);
@@ -1486,6 +1487,7 @@ describe('Dash Service', function() {
       should.exist(node.zmqSubSocket);
     });
   });
+  */
 
   describe('#_checkReindex', function() {
     var sandbox = sinon.sandbox.create();
