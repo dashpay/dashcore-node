@@ -51,7 +51,7 @@ node.on('ready', function() {
 ## Prerequisites
 
 - Dash Core (dashd) (v0.13.0) with support for additional indexing *(see above)*
-- Node.js v6 - v8 (versions higher than v8 are not yet supported)
+- Node.js v8+
 - ZeroMQ *(libzmq3-dev for Ubuntu/Debian or zeromq on OSX)*
 - ~20GB of disk storage
 - ~1GB of RAM
