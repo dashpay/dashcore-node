@@ -1,6 +1,6 @@
 'use strict';
 
-// jshint ignore: start
+/* jshint sub: true */
 
 var path = require('path');
 var EventEmitter = require('events').EventEmitter;
@@ -36,7 +36,6 @@ describe('Dash Service', function() {
     spawn: {
       datadir: 'testdir',
       exec: 'testpath',
-      zmqpubrawtx: 'tcp://127.0.0.1:28332'
     }
   };
 
@@ -5401,7 +5400,6 @@ describe('Dash Service', function() {
 		    if (err) {
 			    return done(err);
 		    }
-
 		    MNList.length.should.equal(2);
 		    MNList[0].vin.should.equal("06c4c53b64019a021e8597c19e40807038cab4cd422ca9241db82aa19887354b-0");
 		    MNList[0].status.should.equal("ENABLED");
