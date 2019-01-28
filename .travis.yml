@@ -15,5 +15,6 @@ addons:
       - libzmq3-dev
 
 script:
+  - npm run check-package
   - npm run test
   - npm run jshint
