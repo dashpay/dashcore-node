@@ -105,7 +105,7 @@ describe('Dash Service', function() {
       var dashd = new DashService(baseConfig);
       var methods = dashd.getAPIMethods();
       should.exist(methods);
-      methods.length.should.equal(23);
+      methods.length.should.equal(24);
     });
   });
 
