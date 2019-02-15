@@ -1,6 +1,5 @@
+// jshint ignore: start
 'use strict';
-
-/* jshint sub: true */
 
 var path = require('path');
 var EventEmitter = require('events').EventEmitter;
@@ -3416,36 +3415,36 @@ describe('Dash Service', function() {
     });
   });
 
-  describe('#_paginateTxids', function() {
+  describe('#_paginate', function() {
     it('slice txids based on "from" and "to" (3 to 13)', function() {
       var dashd = new DashService(baseConfig);
       var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      var paginated = dashd._paginateTxids(txids, 3, 13);
+      var paginated = dashd._paginate(txids, 3, 13);
       paginated.should.deep.equal([3, 4, 5, 6, 7, 8, 9, 10]);
     });
     it('slice txids based on "from" and "to" (0 to 3)', function() {
       var dashd = new DashService(baseConfig);
       var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      var paginated = dashd._paginateTxids(txids, 0, 3);
+      var paginated = dashd._paginate(txids, 0, 3);
       paginated.should.deep.equal([0, 1, 2]);
     });
     it('slice txids based on "from" and "to" (0 to 1)', function() {
       var dashd = new DashService(baseConfig);
       var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      var paginated = dashd._paginateTxids(txids, 0, 1);
+      var paginated = dashd._paginate(txids, 0, 1);
       paginated.should.deep.equal([0]);
     });
     it('will throw error if "from" is greater than "to"', function() {
       var dashd = new DashService(baseConfig);
       var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       (function() {
-        dashd._paginateTxids(txids, 1, 0);
+        dashd._paginate(txids, 1, 0);
       }).should.throw('"from" (1) is expected to be less than "to"');
     });
     it('will handle string numbers', function() {
       var dashd = new DashService(baseConfig);
       var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      var paginated = dashd._paginateTxids(txids, '1', '3');
+      var paginated = dashd._paginate(txids, '1', '3');
       paginated.should.deep.equal([1, 2]);
     });
   });
@@ -3610,7 +3609,7 @@ describe('Dash Service', function() {
           })
         }
       });
-      sinon.spy(dashd, '_paginateTxids');
+      sinon.spy(dashd, '_paginate');
       dashd.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
       dashd.getAddressBalance = sinon.stub().callsArgWith(2, null, {
         received: 30 * 1e8,
@@ -3619,9 +3618,9 @@ describe('Dash Service', function() {
       var address = '7oK6xjGeVK5YCT5dpqzNXGUag1bQadPAyT';
       var options = {};
       dashd.getAddressSummary(address, options, function(err, summary) {
-        dashd._paginateTxids.callCount.should.equal(1);
-        dashd._paginateTxids.args[0][1].should.equal(0);
-        dashd._paginateTxids.args[0][2].should.equal(1000);
+        dashd._paginate.callCount.should.equal(1);
+        dashd._paginate.args[0][1].should.equal(0);
+        dashd._paginate.args[0][2].should.equal(1000);
         summary.appearances.should.equal(3);
         summary.totalReceived.should.equal(3000000000);
         summary.totalSpent.should.equal(1000000000);
@@ -3728,7 +3727,7 @@ describe('Dash Service', function() {
           getAddressMempool: getAddressMempool
         }
       });
-      sinon.spy(dashd, '_paginateTxids');
+      sinon.spy(dashd, '_paginate');
       dashd.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
       dashd.getAddressBalance = sinon.stub().callsArgWith(2, null, {
         received: 30 * 1e8,
@@ -3743,7 +3742,7 @@ describe('Dash Service', function() {
         done();
       });
     });
-    it('will give error from _paginateTxids', function(done) {
+    it('will give error from _paginate', function(done) {
       var dashd = new DashService(baseConfig);
       var getAddressMempool = sinon.stub();
       dashd.nodes.push({
@@ -3751,13 +3750,13 @@ describe('Dash Service', function() {
           getAddressMempool: getAddressMempool
         }
       });
-      sinon.spy(dashd, '_paginateTxids');
+      sinon.spy(dashd, '_paginate');
       dashd.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
       dashd.getAddressBalance = sinon.stub().callsArgWith(2, null, {
         received: 30 * 1e8,
         balance: 20 * 1e8
       });
-      dashd._paginateTxids = sinon.stub().throws(new Error('test'));
+      dashd._paginate = sinon.stub().throws(new Error('test'));
       var address = '7oK6xjGeVK5YCT5dpqzNXGUag1bQadPAyT';
       var options = {
         queryMempool: false
