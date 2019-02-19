@@ -22,7 +22,7 @@
   "trailing": true,
   "undef": true,
   "unused": true,
-  "maxparams": 4,
+  "maxparams": 5,
   "maxstatements": 17,
   "maxcomplexity": 10,
   "maxdepth": 3,
