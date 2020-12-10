@@ -1432,13 +1432,13 @@ describe('Dash Service', function() {
       };
       node.zmqSubSocket.subscribe = sinon.stub();
       dashd._subscribeZmqEvents(node);
-      node.zmqSubSocket.on('message', function() {
+      node.zmqSubSocket.on('rawtx', function() {
         dashd._zmqTransactionHandler.callCount.should.equal(1);
         done();
       });
       var topic = new Buffer('rawtx', 'utf8');
       var message = new Buffer('abcdef', 'hex');
-      node.zmqSubSocket.emit('message', topic, message);
+      node.zmqSubSocket.emit('rawtx',  message);
     });
     it('will call relevant handler for hashblock topics', function(done) {
       var dashd = new DashService(baseConfig);
@@ -1448,13 +1448,13 @@ describe('Dash Service', function() {
       };
       node.zmqSubSocket.subscribe = sinon.stub();
       dashd._subscribeZmqEvents(node);
-      node.zmqSubSocket.on('message', function() {
+      node.zmqSubSocket.on('hashblock', function() {
         dashd._zmqBlockHandler.callCount.should.equal(1);
         done();
       });
       var topic = new Buffer('hashblock', 'utf8');
       var message = new Buffer('abcdef', 'hex');
-      node.zmqSubSocket.emit('message', topic, message);
+      node.zmqSubSocket.emit('hashblock',  message);
     });
     it('will ignore unknown topic types', function(done) {
       var dashd = new DashService(baseConfig);
@@ -1475,32 +1475,29 @@ describe('Dash Service', function() {
       node.zmqSubSocket.emit('message', topic, message);
     });
   });
-
   describe('#_initZmqSubSocket', function() {
     it('will setup zmq socket', function() {
       var socket = new EventEmitter();
-      socket.monitor = sinon.stub();
-      socket.connect = sinon.stub();
+      socket.host = '0.0.0.0';
+      socket.isConnected = true;
+      socket.port = '3000';
+      socket.protocol = 'tcp';
+      socket.events = {};
       var socketFunc = function() {
         return socket;
       };
-      var DashService = proxyquire('../../lib/services/dashd', {
-        zeromq: {
-          socket: socketFunc
-        }
-      });
+      var DashService = require('../../lib/services/dashd');
       var dashd = new DashService(baseConfig);
       var node = {};
-      dashd._initZmqSubSocket(node, 'url');
-      node.zmqSubSocket.should.equal(socket);
-      socket.connect.callCount.should.equal(1);
-      socket.connect.args[0][0].should.equal('url');
-      socket.monitor.callCount.should.equal(1);
-      socket.monitor.args[0][0].should.equal(500);
-      socket.monitor.args[0][1].should.equal(0);
+      dashd._initZmqSubSocket(node, 'tcp://0.0.0.0:3000').then(()=>{
+        node.zmqSubSocket.host.should.equal(socket.host);
+        node.zmqSubSocket.isConnected.should.equal(socket.isConnected);
+        node.zmqSubSocket.port.should.equal(socket.port);
+        node.zmqSubSocket.protocol.should.equal(socket.protocol);
+        node.zmqSubSocket.close();
+      });
     });
   });
-
   describe('#_checkReindex', function() {
     var sandbox = sinon.sandbox.create();
     before(function() {
@@ -1826,7 +1823,7 @@ describe('Dash Service', function() {
       dashd.spawn.config.zmqpubrawtxlock = 'tcp://127.0.0.1:30001';
 
       dashd._loadTipFromNode = sinon.stub().callsArgWith(1, null);
-      dashd._initZmqSubSocket = sinon.stub();
+      dashd._initZmqSubSocket = sinon.stub().resolves();
       dashd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
       dashd._checkReindex = sinon.stub().callsArgWith(1, null);
       dashd._spawnChildProcess(function(err, node) {
@@ -1872,7 +1869,7 @@ describe('Dash Service', function() {
       dashd.spawn.config = {};
       dashd.spawnRestartTime = 1;
       dashd._loadTipFromNode = sinon.stub().callsArg(1);
-      dashd._initZmqSubSocket = sinon.stub();
+      dashd._initZmqSubSocket = sinon.stub().resolves();
       dashd._checkReindex = sinon.stub().callsArg(1);
       dashd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
       dashd._stopSpawnedDash = sinon.stub().callsArg(0);
@@ -1910,7 +1907,7 @@ describe('Dash Service', function() {
       dashd.spawn.config = {};
       dashd.spawnRestartTime = 1;
       dashd._loadTipFromNode = sinon.stub().callsArg(1);
-      dashd._initZmqSubSocket = sinon.stub();
+      dashd._initZmqSubSocket = sinon.stub().resolves();
       dashd._checkReindex = sinon.stub().callsArg(1);
       dashd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
       dashd._stopSpawnedDash = sinon.stub().callsArg(0);
@@ -1957,7 +1954,7 @@ describe('Dash Service', function() {
       dashd.spawn.config = {};
       dashd.spawnRestartTime = 1;
       dashd._loadTipFromNode = sinon.stub().callsArg(1);
-      dashd._initZmqSubSocket = sinon.stub();
+      dashd._initZmqSubSocket = sinon.stub().resolves();;
       dashd._checkReindex = sinon.stub().callsArg(1);
       dashd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
       dashd._stopSpawnedDash = sinon.stub().callsArg(0);
@@ -2033,7 +2030,7 @@ describe('Dash Service', function() {
       dashd.spawn.config.zmqpubrawtxlock = 'tcp://127.0.0.1:30001';
 
       dashd._loadTipFromNode = sinon.stub().callsArgWith(1, null);
-      dashd._initZmqSubSocket = sinon.stub();
+      dashd._initZmqSubSocket = sinon.stub().resolves();
       dashd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
       dashd._checkReindex = sinon.stub().callsArgWith(1, new Error('test'));
 
@@ -2079,7 +2076,7 @@ describe('Dash Service', function() {
     });
     it('will init zmq/rpc on node', function(done) {
       var dashd = new DashService(baseConfig);
-      dashd._initZmqSubSocket = sinon.stub();
+      dashd._initZmqSubSocket = sinon.stub().resolves();
       dashd._subscribeZmqEvents = sinon.stub();
       dashd._loadTipFromNode = sinon.stub().callsArgWith(1, null);
       var config = {};
