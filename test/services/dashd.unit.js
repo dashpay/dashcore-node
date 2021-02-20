@@ -105,7 +105,7 @@ describe('Dash Service', function() {
       var dashd = new DashService(baseConfig);
       var methods = dashd.getAPIMethods();
       should.exist(methods);
-      methods.length.should.equal(24);
+      methods.length.should.equal(25);
     });
   });
 
@@ -5019,6 +5019,54 @@ describe('Dash Service', function() {
         }
         should.exist(hash);
         hash.should.equal('besthash');
+        done();
+      });
+    });
+  });
+
+  describe('#getBestChainLock', function () {
+    it('will give rpc error', function (done) {
+      var dashd = new DashService(baseConfig);
+      var getBestChainLock = sinon.stub().callsArgWith(0, { message: 'error', code: -32603 });
+      dashd.nodes.push({
+        client: {
+          getBestChainLock: getBestChainLock
+        }
+      });
+      dashd.getBestChainLock(function (err) {
+        should.exist(err);
+        err.should.be.an.instanceof(errors.RPCError);
+        done();
+      });
+    });
+    it('will call getBestChainLock and give result', function (done) {
+      var dashd = new DashService(baseConfig);
+      var getBestChainLock = sinon.stub().callsArgWith(0, null, {
+        result: {
+          bestchainlock: {
+            blockhash: '20b6cc0600037171b8bb634bbd04ea754945be44db8d9199b74798f1abdb382d',
+            height: 151,
+            known_block: true
+          }
+        }
+      });
+      dashd.nodes.push({
+        client: {
+          getBestChainLock: getBestChainLock
+        }
+      });
+      dashd.getBestChainLock(function (err, result) {
+        if (err) {
+          return done(err);
+        }
+        should.exist(result);
+        result.should.deep.equal({
+          bestchainlock: {
+            blockhash: '20b6cc0600037171b8bb634bbd04ea754945be44db8d9199b74798f1abdb382d',
+            height: 151,
+            known_block: true
+          }
+        });
         done();
       });
     });
