@@ -71,8 +71,7 @@ describe('#create', function() {
       should.equal(fs.existsSync(packagePath), true);
 
       var config = JSON.parse(fs.readFileSync(configPath));
-      config.services.should.deep.equal(['dashd', 'db', 'address', 'web']);
-      config.datadir.should.equal('./data');
+      config.services.should.deep.equal(['dashd', 'web']);
       config.network.should.equal('livenet');
 
       var pack = JSON.parse(fs.readFileSync(packagePath));
