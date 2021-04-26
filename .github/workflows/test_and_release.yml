@@ -36,11 +36,11 @@ jobs:
       - name: Install NPM dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm run test
-
       - name: Run jshint
         run: npm run jshint
+
+      - name: Run tests
+        run: npm run test
 
   release:
     name: Release NPM package
