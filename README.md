@@ -14,7 +14,7 @@ npm install
 ./bin/dashcore-node start
 ```
 
-When running the start command, it will seek for a .dashcore folder with a dashcore-node.json conf file.
+When running the start command, it will seek for `.dashcore/dashcore-node.json` conf file in the working directory (see [/docs/services/dashd.md](/docs/services/dashd.md) for an example).
 If it doesn't exist, it will create it, with basic task to connect to dashd.
 
 Some plugins are available :
