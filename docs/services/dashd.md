@@ -6,7 +6,12 @@ The Dash Service is a Node.js interface to [Dash Core](https://github.com/dashpa
 
 The configuration should include a "connect" configuration in "dashd". This defines the JSONRPC connection information for separately managed `dashd` processes. It's also possible to connect to several separately managed `dashd` processes with round-robin querying, for example:
 
-```json
+```json5
+{
+  // ...
+  "services": [
+    "dashd"
+  ],
   "servicesConfig": {
     "dashd": {
       "connect": [
@@ -34,6 +39,7 @@ The configuration should include a "connect" configuration in "dashd". This defi
       ]
     }
   }
+}
 ```
 
 **Note**: For detailed example configuration see [`regtest/cluster.js`](regtest/cluster.js)
