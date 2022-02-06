@@ -40,10 +40,12 @@ const dashcore = require('@dashevo/dashcore-node');
 const config = require('./dashcore-node.json');
 
 let node = dashcore.scaffold.start({ path: "", config: config });
-node.on('ready', function() {
-    //Dash core started
-    dashd.on('tx', function(txData) {
+node.on('ready', function () {
+    console.log("Dash core started");
+    
+    node.services.dashd.on('tx', function(txData) {
         let tx = new dashcore.lib.Transaction(txData);
+        console.log(tx);
     });
 });
 ```
@@ -53,7 +55,7 @@ node.on('ready', function() {
 - Dash Core (dashd) (v0.13.0) with support for additional indexing *(see above)*
 - Node.js v8+
 - ZeroMQ *(libzmq3-dev for Ubuntu/Debian or zeromq on OSX)*
-- ~20GB of disk storage
+- ~50GB of disk storage
 - ~1GB of RAM
 
 ## Configuration
