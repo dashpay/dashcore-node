@@ -4588,7 +4588,7 @@ describe('Dash Service', function() {
           sendRawTransaction: sendRawTransaction
         }
       });
-      dashd.sendTransaction(txhex, {allowAbsurdFees: true}, function(err, hash) {
+      dashd.sendTransaction(txhex, {maxFeeRate: 0}, function(err, hash) {
         if (err) {
           return done(err);
         }
