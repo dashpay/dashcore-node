@@ -375,11 +375,9 @@ describe('Dash Service', function() {
         fs: {
           readFileSync: readFileSync,
           existsSync: sinon.stub().returns(true),
-          writeFileSync: sinon.stub()
+          writeFileSync: sinon.stub(),
+          mkdirSync: sinon.stub(),
         },
-        mkdirp: {
-          sync: sinon.stub()
-        }
       });
       var dashd = new TestDash(baseConfig);
       dashd.options.spawn.datadir = '/tmp/.dash';
@@ -412,11 +410,9 @@ describe('Dash Service', function() {
         fs: {
           readFileSync: readFileSync,
           existsSync: sinon.stub().returns(true),
-          writeFileSync: sinon.stub()
+          writeFileSync: sinon.stub(),
+          mkdirSync: sinon.stub(),
         },
-        mkdirp: {
-          sync: sinon.stub()
-        }
       });
       var config = {
         node: {
@@ -439,10 +435,8 @@ describe('Dash Service', function() {
         fs: {
           readFileSync: sinon.stub().returns(fs.readFileSync(__dirname + '/../data/baddash.conf')),
           existsSync: sinon.stub().returns(true),
+          mkdirSync: sinon.stub(),
         },
-        mkdirp: {
-          sync: sinon.stub()
-        }
       });
       var dashd = new TestDash(baseConfig);
       (function() {
@@ -457,11 +451,9 @@ describe('Dash Service', function() {
         fs: {
           writeFileSync: writeFileSync,
           readFileSync: readFileSync,
-          existsSync: sinon.stub().returns(false)
+          existsSync: sinon.stub().returns(false),
+          mkdirSync: sinon.stub(),
         },
-        mkdirp: {
-          sync: sinon.stub()
-        }
       });
       var config = {
         node: {

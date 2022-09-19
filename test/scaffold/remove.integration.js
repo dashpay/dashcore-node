@@ -5,7 +5,6 @@ var sinon = require('sinon');
 var path = require('path');
 var fs = require('fs');
 var proxyquire = require('proxyquire');
-var mkdirp = require('mkdirp');
 var rimraf = require('rimraf');
 var remove = require('../../lib/scaffold/remove');
 
@@ -20,7 +19,7 @@ describe('#remove', function() {
   var startPackage = {};
 
   before(function(done) {
-    mkdirp(testDir + '/s0/s1', function(err) {
+    fs.mkdir(testDir + '/s0/s1', { recursive: true }, function(err) {
       if (err) {
         throw err;
       }

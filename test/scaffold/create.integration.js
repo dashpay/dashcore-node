@@ -19,7 +19,6 @@ var create = proxyquire('../../lib/scaffold/create', {
   }
 });
 var fs = require('fs');
-var mkdirp = require('mkdirp');
 var rimraf = require('rimraf');
 
 describe('#create', function() {
@@ -29,11 +28,11 @@ describe('#create', function() {
 
   before(function(done) {
     // setup testing directories
-    mkdirp(testDir, function(err) {
+    fs.mkdir(testDir, { recursive: true }, function(err) {
       if (err) {
         throw err;
       }
-      mkdirp(testDir + '/.dash', function(err) {
+      fs.mkdir(testDir + '/.dash', { recursive: true }, function(err) {
         if (err) {
           throw err;
         }

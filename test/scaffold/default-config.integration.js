@@ -37,11 +37,9 @@ describe('#defaultConfig', function() {
         },
         readFileSync: function() {
           return config;
-        }
+        },
+        mkdirSync: sinon.stub(),
       },
-      mkdirp: {
-        sync: sinon.stub()
-      }
     });
     var home = process.env.HOME;
     var info = defaultConfig();
@@ -83,11 +81,9 @@ describe('#defaultConfig', function() {
         },
         readFileSync: function() {
           return config;
-        }
+        },
+        mkdirSync: sinon.stub(),
       },
-      mkdirp: {
-        sync: sinon.stub()
-      }
     });
     var home = process.env.HOME;
     var info = defaultConfig({

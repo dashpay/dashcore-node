@@ -4,7 +4,6 @@ var fs = require('fs');
 var path = require('path');
 var should = require('chai').should();
 var sinon = require('sinon');
-var mkdirp = require('mkdirp');
 var rimraf = require('rimraf');
 
 var findConfig = require('../../lib/scaffold/find-config');
@@ -18,7 +17,7 @@ describe('#findConfig', function() {
 
   before(function(done) {
     // setup testing directories
-    mkdirp(testDir + '/p2/p1/p0', function(err) {
+    fs.mkdir(testDir + '/p2/p1/p0', { recursive: true }, function(err) {
       if (err) {
         throw err;
       }
@@ -26,7 +25,7 @@ describe('#findConfig', function() {
         testDir + '/p2/dashcore-node.json',
         JSON.stringify(expectedConfig),
         function() {
-          mkdirp(testDir + '/e0', function(err) {
+          fs.mkdir(testDir + '/e0', { recursive: true }, function(err) {
             if (err) {
               throw err;
             }
