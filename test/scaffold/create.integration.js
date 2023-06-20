@@ -1,38 +1,37 @@
-'use strict';
+"use strict";
 
-var should = require('chai').should();
-var proxyquire = require('proxyquire');
-var sinon = require('sinon');
-var create = proxyquire('../../lib/scaffold/create', {
-  'child_process': {
+var should = require("chai").should();
+var proxyquire = require("proxyquire");
+var sinon = require("sinon");
+var create = proxyquire("../../lib/scaffold/create", {
+  child_process: {
     spawn: sinon.stub().returns({
       stdout: {
-        on: sinon.stub()
+        on: sinon.stub(),
       },
       stderr: {
-        on: sinon.stub()
+        on: sinon.stub(),
       },
-      on: function(event, cb) {
+      on: function (event, cb) {
         cb(0);
-      }
-    })
-  }
+      },
+    }),
+  },
 });
-var fs = require('fs');
-var rimraf = require('rimraf');
+var fs = require("fs");
+var rimraf = require("rimraf");
 
-describe('#create', function() {
+describe("#create", function () {
+  var basePath = __dirname + "/../";
+  var testDir = basePath + "temporary-test-data";
 
-  var basePath = __dirname + '/../';
-  var testDir = basePath + 'temporary-test-data';
-
-  before(function(done) {
+  before(function (done) {
     // setup testing directories
-    fs.mkdir(testDir, { recursive: true }, function(err) {
+    fs.mkdir(testDir, { recursive: true }, function (err) {
       if (err) {
         throw err;
       }
-      fs.mkdir(testDir + '/.dash', { recursive: true }, function(err) {
+      fs.mkdir(testDir + "/.dash", { recursive: true }, function (err) {
         if (err) {
           throw err;
         }
@@ -41,9 +40,9 @@ describe('#create', function() {
     });
   });
 
-  after(function(done) {
+  after(function (done) {
     // cleanup testing directories
-    rimraf(testDir, function(err) {
+    rimraf(testDir, function (err) {
       if (err) {
         throw err;
       }
@@ -51,100 +50,103 @@ describe('#create', function() {
     });
   });
 
-  it('will create scaffold files', function() {
-    create({
-      cwd: testDir,
-      dirname: 'mynode',
-      name: 'My Node 1',
-      isGlobal: false,
-      datadir: './data'
-    }, function(err) {
-      if (err) {
-        throw err;
+  it("will create scaffold files", function () {
+    create(
+      {
+        cwd: testDir,
+        dirname: "mynode",
+        name: "My Node 1",
+        isGlobal: false,
+        datadir: "./data",
+      },
+      function (err) {
+        if (err) {
+          throw err;
+        }
+
+        var configPath = testDir + "/mynode/dashcore-node.json";
+        var packagePath = testDir + "/mynode/package.json";
+        var dataPath = testDir + "/mynode/data";
+
+        should.equal(fs.existsSync(configPath), true);
+        should.equal(fs.existsSync(packagePath), true);
+        should.equal(fs.existsSync(dataPath), true);
+
+        var config = JSON.parse(fs.readFileSync(configPath));
+        config.services.should.deep.equal(["dashd", "web"]);
+        config.network.should.equal("livenet");
+
+        var pack = JSON.parse(fs.readFileSync(packagePath));
+        should.exist(pack.dependencies);
       }
-
-      var configPath = testDir + '/mynode/dashcore-node.json';
-      var packagePath = testDir + '/mynode/package.json';
-      var dataPath = testDir + '/mynode/data';
-
-      should.equal(fs.existsSync(configPath), true);
-      should.equal(fs.existsSync(packagePath), true);
-      should.equal(fs.existsSync(dataPath), true);
-
-      var config = JSON.parse(fs.readFileSync(configPath));
-      config.services.should.deep.equal(['dashd', 'web']);
-      config.network.should.equal('livenet');
-
-      var pack = JSON.parse(fs.readFileSync(packagePath));
-      should.exist(pack.dependencies);
-
-    });
-
+    );
   });
 
-  it('will error if directory already exists', function() {
-
-    create({
-      cwd: testDir,
-      dirname: 'mynode',
-      name: 'My Node 2',
-      isGlobal: false,
-      datadir: './data'
-    }, function(err) {
-      should.exist(err);
-      err.message.should.match(/^Directory/);
-    });
-
-  });
-
-  it('will not create a package.json if globally installed', function() {
-
-    create({
-      cwd: testDir,
-      dirname: 'mynode3',
-      name: 'My Node 3',
-      isGlobal: true,
-      datadir: '../.dash'
-    }, function(err) {
-      if (err) {
-        throw err;
+  it("will error if directory already exists", function () {
+    create(
+      {
+        cwd: testDir,
+        dirname: "mynode",
+        name: "My Node 2",
+        isGlobal: false,
+        datadir: "./data",
+      },
+      function (err) {
+        should.exist(err);
+        err.message.should.match(/^Directory/);
       }
-
-      var packagePath = testDir + '/mynode3/package.json';
-      should.equal(fs.existsSync(packagePath), false);
-
-    });
-
+    );
   });
 
-  it('will receieve an error from npm', function() {
-    var createtest = proxyquire('../../lib/scaffold/create', {
-      'child_process': {
+  it("will not create a package.json if globally installed", function () {
+    create(
+      {
+        cwd: testDir,
+        dirname: "mynode3",
+        name: "My Node 3",
+        isGlobal: true,
+        datadir: "../.dash",
+      },
+      function (err) {
+        if (err) {
+          throw err;
+        }
+
+        var packagePath = testDir + "/mynode3/package.json";
+        should.equal(fs.existsSync(packagePath), false);
+      }
+    );
+  });
+
+  it("will receieve an error from npm", function () {
+    var createtest = proxyquire("../../lib/scaffold/create", {
+      child_process: {
         spawn: sinon.stub().returns({
           stdout: {
-            on: sinon.stub()
+            on: sinon.stub(),
           },
           stderr: {
-            on: sinon.stub()
+            on: sinon.stub(),
           },
-          on: function(event, cb) {
+          on: function (event, cb) {
             cb(1);
-          }
-        })
+          },
+        }),
+      },
+    });
+
+    createtest(
+      {
+        cwd: testDir,
+        dirname: "mynode4",
+        name: "My Node 4",
+        isGlobal: false,
+        datadir: "../.dash",
+      },
+      function (err) {
+        should.exist(err);
+        err.message.should.equal("There was an error installing dependencies.");
       }
-    });
-
-    createtest({
-      cwd: testDir,
-      dirname: 'mynode4',
-      name: 'My Node 4',
-      isGlobal: false,
-      datadir: '../.dash'
-    }, function(err) {
-      should.exist(err);
-      err.message.should.equal('There was an error installing dependencies.');
-    });
-
+    );
   });
-
 });
