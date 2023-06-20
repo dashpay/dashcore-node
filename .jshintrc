@@ -1,11 +1,11 @@
 {
+  "esversion": 11,
   "bitwise": false,
   "browser": true,
   "camelcase": false,
   "curly": true,
   "devel": false,
   "eqeqeq": true,
-  "esnext": true,
   "freeze": true,
   "immed": true,
   "indent": 2,
