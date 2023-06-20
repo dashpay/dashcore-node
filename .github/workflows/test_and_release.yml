@@ -39,6 +39,9 @@ jobs:
       - name: Run jshint
         run: npm run jshint
 
+      - name: Run fmt
+        run: npm run fmt
+
       - name: Run tests
         run: npm run test
 
