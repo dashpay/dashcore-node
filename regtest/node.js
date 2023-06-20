@@ -1,127 +1,122 @@
-'use strict';
+"use strict";
 
 // To run the tests: $ mocha -R spec regtest/node.js
 
-var path = require('path');
-var index = require('..');
-var async = require('async');
+var path = require("path");
+var index = require("..");
+var async = require("async");
 var log = index.log;
-log.debug = function() {};
+log.debug = function () {};
 
-var chai = require('chai');
-var dashcore = require('@dashevo/dashcore-lib');
-var rimraf = require('rimraf');
+var chai = require("chai");
+var dashcore = require("@dashevo/dashcore-lib");
+var rimraf = require("rimraf");
 var node;
 
 var should = chai.should();
 
-var DashdRPC = require('@dashevo/dashd-rpc');
-var index = require('..');
+var DashdRPC = require("@dashevo/dashd-rpc");
+var index = require("..");
 var Transaction = dashcore.Transaction;
 var DashcoreNode = index.Node;
 var DashService = index.services.Dash;
-var testWIF = 'cSdkPxkAjA4HDr5VHgsebAPDEh9Gyub4HK8UJr2DFGGqKKy4K5sG';
+var testWIF = "cSdkPxkAjA4HDr5VHgsebAPDEh9Gyub4HK8UJr2DFGGqKKy4K5sG";
 var testKey;
 var client;
 
 var outputForIsSpentTest1;
 var unspentOutputSpentTxId;
 
-describe('Node Functionality', function() {
-
+describe("Node Functionality", function () {
   var regtest;
 
-  before(function(done) {
+  before(function (done) {
     this.timeout(200000);
 
-    var datadir = __dirname + '/data';
+    var datadir = __dirname + "/data";
 
     testKey = dashcore.PrivateKey(testWIF);
 
-    rimraf(datadir + '/regtest', function(err) {
-
+    rimraf(datadir + "/regtest", function (err) {
       if (err) {
         throw err;
       }
 
       var configuration = {
-        network: 'regtest',
+        network: "regtest",
         services: [
           {
-            name: 'dashd',
+            name: "dashd",
             module: DashService,
             config: {
               spawn: {
                 datadir: datadir,
-                exec: path.resolve(__dirname, process.env.HOME, './.dashcore/data/dashd')
-              }
-            }
-          }
-        ]
+                exec: path.resolve(__dirname, process.env.HOME, "./.dashcore/data/dashd"),
+              },
+            },
+          },
+        ],
       };
 
       node = new DashcoreNode(configuration);
 
-      regtest = dashcore.Networks.get('regtest');
+      regtest = dashcore.Networks.get("regtest");
       should.exist(regtest);
 
-      node.on('error', function(err) {
+      node.on("error", function (err) {
         log.error(err);
       });
 
-      node.start(function(err) {
+      node.start(function (err) {
         if (err) {
           return done(err);
         }
 
         client = new DashdRPC({
-          protocol: 'http',
-          host: '127.0.0.1',
+          protocol: "http",
+          host: "127.0.0.1",
           port: 30331,
-          user: 'dash',
-          pass: 'local321',
-          rejectUnauthorized: false
+          user: "dash",
+          pass: "local321",
+          rejectUnauthorized: false,
         });
 
-        var syncedHandler = function() {
+        var syncedHandler = function () {
           if (node.services.dashd.height === 150) {
-            node.services.dashd.removeListener('synced', syncedHandler);
+            node.services.dashd.removeListener("synced", syncedHandler);
             done();
           }
         };
 
-        node.services.dashd.on('synced', syncedHandler);
+        node.services.dashd.on("synced", syncedHandler);
 
-        client.generate(150, function(err) {
+        client.generate(150, function (err) {
           if (err) {
             throw err;
           }
         });
-
       });
-
-
     });
   });
 
-  after(function(done) {
+  after(function (done) {
     this.timeout(200000);
-    node.stop(function(err, result) {
-      if(err) {
+    node.stop(function (err, result) {
+      if (err) {
         throw err;
       }
       done();
     });
   });
 
-  describe('Bus Functionality', function() {
-    it('subscribes and unsubscribes to an event on the bus', function(done) {
+  describe("Bus Functionality", function () {
+    it("subscribes and unsubscribes to an event on the bus", function (done) {
       var bus = node.openBus();
       var blockExpected;
       var blockReceived;
-      bus.subscribe('dashd/hashblock');
-      bus.on('dashd/hashblock', function(data) {
-        bus.unsubscribe('dashd/hashblock');
+      bus.subscribe("dashd/hashblock");
+      bus.on("dashd/hashblock", function (data) {
+        bus.unsubscribe("dashd/hashblock");
         if (blockExpected) {
           data.should.be.equal(blockExpected);
           done();
@@ -129,7 +124,7 @@ describe('Node Functionality', function() {
           blockReceived = data;
         }
       });
-      client.generate(1, function(err, response) {
+      client.generate(1, function (err, response) {
         if (err) {
           throw err;
         }
@@ -143,31 +138,31 @@ describe('Node Functionality', function() {
     });
   });
 
-  describe('Address Functionality', function() {
+  describe("Address Functionality", function () {
     var address;
     var unspentOutput;
-    before(function(done) {
+    before(function (done) {
       this.timeout(300000);
       address = testKey.toAddress(regtest).toString();
       var startHeight = node.services.dashd.height;
-      node.services.dashd.on('tip', function(height) {
+      node.services.dashd.on("tip", function (height) {
         if (height === startHeight + 3) {
           done();
         }
       });
-      client.sendToAddress(testKey.toAddress(regtest).toString(), 10, function(err) {
+      client.sendToAddress(testKey.toAddress(regtest).toString(), 10, function (err) {
         if (err) {
           throw err;
         }
-        client.generate(3, function(err) {
+        client.generate(3, function (err) {
           if (err) {
             throw err;
           }
         });
       });
     });
-    it('should be able to get the balance of the test address', function(done) {
-      node.getAddressBalance(address, false, function(err, data) {
+    it("should be able to get the balance of the test address", function (done) {
+      node.getAddressBalance(address, false, function (err, data) {
         if (err) {
           throw err;
         }
@@ -175,8 +170,8 @@ describe('Node Functionality', function() {
         done();
       });
     });
-    it('can get unspent outputs for address', function(done) {
-      node.getAddressUnspentOutputs(address, false, function(err, results) {
+    it("can get unspent outputs for address", function (done) {
+      node.getAddressUnspentOutputs(address, false, function (err, results) {
         if (err) {
           throw err;
         }
@@ -185,13 +180,13 @@ describe('Node Functionality', function() {
         done();
       });
     });
-    it('correctly give the history for the address', function(done) {
+    it("correctly give the history for the address", function (done) {
       var options = {
         from: 0,
         to: 10,
-        queryMempool: false
+        queryMempool: false,
       };
-      node.getAddressHistory(address, options, function(err, results) {
+      node.getAddressHistory(address, options, function (err, results) {
         if (err) {
           throw err;
         }
@@ -204,16 +199,16 @@ describe('Node Functionality', function() {
         info.addresses[address].inputIndexes.should.deep.equal([]);
         info.satoshis.should.equal(10 * 1e8);
         info.confirmations.should.equal(3);
-        info.tx.blockTimestamp.should.be.a('number');
+        info.tx.blockTimestamp.should.be.a("number");
         info.tx.feeSatoshis.should.be.within(950, 4000);
         done();
       });
     });
-    it('correctly give the summary for the address', function(done) {
+    it("correctly give the summary for the address", function (done) {
       var options = {
-        queryMempool: false
+        queryMempool: false,
       };
-      node.getAddressSummary(address, options, function(err, results) {
+      node.getAddressSummary(address, options, function (err, results) {
         if (err) {
           throw err;
         }
@@ -227,8 +222,7 @@ describe('Node Functionality', function() {
         done();
       });
     });
-    describe('History', function() {
-
+    describe("History", function () {
       this.timeout(200000);
 
       var testKey2;
@@ -244,30 +238,30 @@ describe('Node Functionality', function() {
       var tx2Amount;
       var tx2Hash;
 
-      before(function(done) {
+      before(function (done) {
         /* jshint maxstatements: 50 */
 
         // Finished once all blocks have been mined
         var startHeight = node.services.dashd.height;
-        node.services.dashd.on('tip', function(height) {
+        node.services.dashd.on("tip", function (height) {
           if (height === startHeight + 5) {
             done();
           }
         });
 
-        testKey2 = dashcore.PrivateKey.fromWIF('cNfF4jXiLHQnFRsxaJyr2YSGcmtNYvxQYSakNhuDGxpkSzAwn95x');
+        testKey2 = dashcore.PrivateKey.fromWIF("cNfF4jXiLHQnFRsxaJyr2YSGcmtNYvxQYSakNhuDGxpkSzAwn95x");
         address2 = testKey2.toAddress(regtest).toString();
 
-        testKey3 = dashcore.PrivateKey.fromWIF('cVTYQbaFNetiZcvxzXcVMin89uMLC43pEBMy2etgZHbPPxH5obYt');
+        testKey3 = dashcore.PrivateKey.fromWIF("cVTYQbaFNetiZcvxzXcVMin89uMLC43pEBMy2etgZHbPPxH5obYt");
         address3 = testKey3.toAddress(regtest).toString();
 
-        testKey4 = dashcore.PrivateKey.fromWIF('cPNQmfE31H2oCUFqaHpfSqjDibkt7XoT2vydLJLDHNTvcddCesGw');
+        testKey4 = dashcore.PrivateKey.fromWIF("cPNQmfE31H2oCUFqaHpfSqjDibkt7XoT2vydLJLDHNTvcddCesGw");
         address4 = testKey4.toAddress(regtest).toString();
 
-        testKey5 = dashcore.PrivateKey.fromWIF('cVrzm9gCmnzwEVMGeCxY6xLVPdG3XWW97kwkFH3H3v722nb99QBF');
+        testKey5 = dashcore.PrivateKey.fromWIF("cVrzm9gCmnzwEVMGeCxY6xLVPdG3XWW97kwkFH3H3v722nb99QBF");
         address5 = testKey5.toAddress(regtest).toString();
 
-        testKey6 = dashcore.PrivateKey.fromWIF('cPfMesNR2gsQEK69a6xe7qE44CZEZavgMUak5hQ74XDgsRmmGBYF');
+        testKey6 = dashcore.PrivateKey.fromWIF("cPfMesNR2gsQEK69a6xe7qE44CZEZavgMUak5hQ74XDgsRmmGBYF");
         address6 = testKey6.toAddress(regtest).toString();
 
         var tx = new Transaction();
@@ -283,7 +277,7 @@ describe('Node Functionality', function() {
         unspentOutputSpentTxId = tx.id;
 
         function mineBlock(next) {
-          client.generate(1, function(err, response) {
+          client.generate(1, function (err, response) {
             if (err) {
               throw err;
             }
@@ -292,101 +286,98 @@ describe('Node Functionality', function() {
           });
         }
 
-        node.sendTransaction(tx.serialize(), function(err, hash) {
+        node.sendTransaction(tx.serialize(), function (err, hash) {
           if (err) {
             return done(err);
           }
 
-          client.generate(1, function(err, response) {
+          client.generate(1, function (err, response) {
             if (err) {
               throw err;
             }
             should.exist(response);
 
-            node.getAddressUnspentOutputs(address, false, function(err, results) {
+            node.getAddressUnspentOutputs(address, false, function (err, results) {
               /* jshint maxstatements: 50 */
               if (err) {
                 throw err;
               }
               results.length.should.equal(5);
 
-              async.series([
-                function(next) {
-                  var tx2 = new Transaction();
-                  tx2Amount = results[0].satoshis - 10000;
-                  tx2.from(results[0]);
-                  tx2.to(address2, tx2Amount);
-                  tx2.change(address);
-                  tx2.sign(testKey);
-                  tx2Hash = tx2.hash;
-                  node.sendTransaction(tx2.serialize(), function(err) {
-                    if (err) {
-                      return next(err);
-                    }
-                    mineBlock(next);
-                  });
-                }, function(next) {
-                  var tx3 = new Transaction();
-                  tx3.from(results[1]);
-                  tx3.to(address3, results[1].satoshis - 10000);
-                  tx3.change(address);
-                  tx3.sign(testKey);
-                  node.sendTransaction(tx3.serialize(), function(err) {
-                    if (err) {
-                      return next(err);
-                    }
-                    mineBlock(next);
-                  });
-                }, function(next) {
-                  var tx4 = new Transaction();
-                  tx4.from(results[2]);
-                  tx4.to(address4, results[2].satoshis - 10000);
-                  tx4.change(address);
-                  tx4.sign(testKey);
-                  node.sendTransaction(tx4.serialize(), function(err) {
-                    if (err) {
-                      return next(err);
-                    }
-                    mineBlock(next);
-                  });
-                }, function(next) {
-                  var tx5 = new Transaction();
-                  tx5.from(results[3]);
-                  tx5.from(results[4]);
-                  tx5.to(address5, results[3].satoshis - 10000);
-                  tx5.to(address6, results[4].satoshis - 10000);
-                  tx5.change(address);
-                  tx5.sign(testKey);
-                  node.sendTransaction(tx5.serialize(), function(err) {
-                    if (err) {
-                      return next(err);
-                    }
-                    mineBlock(next);
-                  });
+              async.series(
+                [
+                  function (next) {
+                    var tx2 = new Transaction();
+                    tx2Amount = results[0].satoshis - 10000;
+                    tx2.from(results[0]);
+                    tx2.to(address2, tx2Amount);
+                    tx2.change(address);
+                    tx2.sign(testKey);
+                    tx2Hash = tx2.hash;
+                    node.sendTransaction(tx2.serialize(), function (err) {
+                      if (err) {
+                        return next(err);
+                      }
+                      mineBlock(next);
+                    });
+                  },
+                  function (next) {
+                    var tx3 = new Transaction();
+                    tx3.from(results[1]);
+                    tx3.to(address3, results[1].satoshis - 10000);
+                    tx3.change(address);
+                    tx3.sign(testKey);
+                    node.sendTransaction(tx3.serialize(), function (err) {
+                      if (err) {
+                        return next(err);
+                      }
+                      mineBlock(next);
+                    });
+                  },
+                  function (next) {
+                    var tx4 = new Transaction();
+                    tx4.from(results[2]);
+                    tx4.to(address4, results[2].satoshis - 10000);
+                    tx4.change(address);
+                    tx4.sign(testKey);
+                    node.sendTransaction(tx4.serialize(), function (err) {
+                      if (err) {
+                        return next(err);
+                      }
+                      mineBlock(next);
+                    });
+                  },
+                  function (next) {
+                    var tx5 = new Transaction();
+                    tx5.from(results[3]);
+                    tx5.from(results[4]);
+                    tx5.to(address5, results[3].satoshis - 10000);
+                    tx5.to(address6, results[4].satoshis - 10000);
+                    tx5.change(address);
+                    tx5.sign(testKey);
+                    node.sendTransaction(tx5.serialize(), function (err) {
+                      if (err) {
+                        return next(err);
+                      }
+                      mineBlock(next);
+                    });
+                  },
+                ],
+                function (err) {
+                  if (err) {
+                    throw err;
+                  }
                 }
-              ], function(err) {
-                if (err) {
-                  throw err;
-                }
-              });
+              );
             });
-
           });
-
         });
-
       });
 
-      it('five addresses', function(done) {
-        var addresses = [
-          address2,
-          address3,
-          address4,
-          address5,
-          address6
-        ];
+      it("five addresses", function (done) {
+        var addresses = [address2, address3, address4, address5, address6];
         var options = {};
-        node.getAddressHistory(addresses, options, function(err, results) {
+        node.getAddressHistory(addresses, options, function (err, results) {
           if (err) {
             throw err;
           }
@@ -408,19 +399,13 @@ describe('Node Functionality', function() {
         });
       });
 
-      it('five addresses (limited by height)', function(done) {
-        var addresses = [
-          address2,
-          address3,
-          address4,
-          address5,
-          address6
-        ];
+      it("five addresses (limited by height)", function (done) {
+        var addresses = [address2, address3, address4, address5, address6];
         var options = {
           start: 158,
-          end: 157
+          end: 157,
         };
-        node.getAddressHistory(addresses, options, function(err, results) {
+        node.getAddressHistory(addresses, options, function (err, results) {
           if (err) {
             throw err;
           }
@@ -435,19 +420,13 @@ describe('Node Functionality', function() {
         });
       });
 
-      it('five addresses (limited by height 155 to 154)', function(done) {
-        var addresses = [
-          address2,
-          address3,
-          address4,
-          address5,
-          address6
-        ];
+      it("five addresses (limited by height 155 to 154)", function (done) {
+        var addresses = [address2, address3, address4, address5, address6];
         var options = {
           start: 157,
-          end: 156
+          end: 156,
         };
-        node.getAddressHistory(addresses, options, function(err, results) {
+        node.getAddressHistory(addresses, options, function (err, results) {
           if (err) {
             throw err;
           }
@@ -460,19 +439,13 @@ describe('Node Functionality', function() {
         });
       });
 
-      it('five addresses (paginated by index)', function(done) {
-        var addresses = [
-          address2,
-          address3,
-          address4,
-          address5,
-          address6
-        ];
+      it("five addresses (paginated by index)", function (done) {
+        var addresses = [address2, address3, address4, address5, address6];
         var options = {
           from: 0,
-          to: 3
+          to: 3,
         };
-        node.getAddressHistory(addresses, options, function(err, results) {
+        node.getAddressHistory(addresses, options, function (err, results) {
           if (err) {
             throw err;
           }
@@ -487,12 +460,10 @@ describe('Node Functionality', function() {
         });
       });
 
-      it('one address with sending and receiving', function(done) {
-        var addresses = [
-          address
-        ];
+      it("one address with sending and receiving", function (done) {
+        var addresses = [address];
         var options = {};
-        node.getAddressHistory(addresses, options, function(err, results) {
+        node.getAddressHistory(addresses, options, function (err, results) {
           if (err) {
             throw err;
           }
@@ -516,8 +487,8 @@ describe('Node Functionality', function() {
         });
       });
 
-      it('summary for an address (sending and receiving)', function(done) {
-        node.getAddressSummary(address, {}, function(err, results) {
+      it("summary for an address (sending and receiving)", function (done) {
+        node.getAddressSummary(address, {}, function (err, results) {
           if (err) {
             throw err;
           }
@@ -532,13 +503,10 @@ describe('Node Functionality', function() {
         });
       });
 
-
-      it('total transaction count (sending and receiving)', function(done) {
-        var addresses = [
-          address
-        ];
+      it("total transaction count (sending and receiving)", function (done) {
+        var addresses = [address];
         var options = {};
-        node.getAddressHistory(addresses, options, function(err, results) {
+        node.getAddressHistory(addresses, options, function (err, results) {
           if (err) {
             throw err;
           }
@@ -547,13 +515,13 @@ describe('Node Functionality', function() {
         });
       });
 
-      describe('Pagination', function() {
-        it('from 0 to 1', function(done) {
+      describe("Pagination", function () {
+        it("from 0 to 1", function (done) {
           var options = {
             from: 0,
-            to: 1
+            to: 1,
           };
-          node.getAddressHistory(address, options, function(err, results) {
+          node.getAddressHistory(address, options, function (err, results) {
             if (err) {
               throw err;
             }
@@ -563,12 +531,12 @@ describe('Node Functionality', function() {
             done();
           });
         });
-        it('from 1 to 2', function(done) {
+        it("from 1 to 2", function (done) {
           var options = {
             from: 1,
-            to: 2
+            to: 2,
           };
-          node.getAddressHistory(address, options, function(err, results) {
+          node.getAddressHistory(address, options, function (err, results) {
             if (err) {
               throw err;
             }
@@ -578,12 +546,12 @@ describe('Node Functionality', function() {
             done();
           });
         });
-        it('from 2 to 3', function(done) {
+        it("from 2 to 3", function (done) {
           var options = {
             from: 2,
-            to: 3
+            to: 3,
           };
-          node.getAddressHistory(address, options, function(err, results) {
+          node.getAddressHistory(address, options, function (err, results) {
             if (err) {
               throw err;
             }
@@ -593,12 +561,12 @@ describe('Node Functionality', function() {
             done();
           });
         });
-        it('from 3 to 4', function(done) {
+        it("from 3 to 4", function (done) {
           var options = {
             from: 3,
-            to: 4
+            to: 4,
           };
-          node.getAddressHistory(address, options, function(err, results) {
+          node.getAddressHistory(address, options, function (err, results) {
             if (err) {
               throw err;
             }
@@ -608,12 +576,12 @@ describe('Node Functionality', function() {
             done();
           });
         });
-        it('from 4 to 5', function(done) {
+        it("from 4 to 5", function (done) {
           var options = {
             from: 4,
-            to: 5
+            to: 5,
           };
-          node.getAddressHistory(address, options, function(err, results) {
+          node.getAddressHistory(address, options, function (err, results) {
             if (err) {
               throw err;
             }
@@ -626,12 +594,12 @@ describe('Node Functionality', function() {
             done();
           });
         });
-        it('from 5 to 6', function(done) {
+        it("from 5 to 6", function (done) {
           var options = {
             from: 5,
-            to: 6
+            to: 6,
           };
-          node.getAddressHistory(address, options, function(err, results) {
+          node.getAddressHistory(address, options, function (err, results) {
             if (err) {
               throw err;
             }
@@ -642,14 +610,13 @@ describe('Node Functionality', function() {
             done();
           });
         });
-
       });
     });
 
-    describe('Mempool Index', function() {
+    describe("Mempool Index", function () {
       var unspentOutput;
-      before(function(done) {
-        node.getAddressUnspentOutputs(address, false, function(err, results) {
+      before(function (done) {
+        node.getAddressUnspentOutputs(address, false, function (err, results) {
           if (err) {
             throw err;
           }
@@ -659,7 +626,7 @@ describe('Node Functionality', function() {
         });
       });
 
-      it('will update the mempool index after new tx', function(done) {
+      it("will update the mempool index after new tx", function (done) {
         var memAddress = dashcore.PrivateKey().toAddress(node.network).toString();
         var tx = new Transaction();
         tx.from(unspentOutput);
@@ -667,8 +634,8 @@ describe('Node Functionality', function() {
         tx.fee(2000);
         tx.sign(testKey);
 
-        node.services.dashd.sendTransaction(tx.serialize(), function(err, hash) {
-          node.getAddressTxids(memAddress, {}, function(err, txids) {
+        node.services.dashd.sendTransaction(tx.serialize(), function (err, hash) {
+          node.getAddressTxids(memAddress, {}, function (err, txids) {
             if (err) {
               return done(err);
             }
@@ -678,71 +645,72 @@ describe('Node Functionality', function() {
           });
         });
       });
-
     });
-
   });
 
-  describe('Orphaned Transactions', function() {
+  describe("Orphaned Transactions", function () {
     this.timeout(80000);
     var orphanedTransaction;
 
-    before(function(done) {
+    before(function (done) {
       var count;
       var invalidatedBlockHash;
 
-      async.series([
-        function(next) {
-          client.sendToAddress(testKey.toAddress(regtest).toString(), 10, function(err) {
-            if (err) {
-              return next(err);
-            }
-            client.generate(1, next);
-          });
-        },
-        function(next) {
-          client.getBlockCount(function(err, response) {
-            if (err) {
-              return next(err);
-            }
-            count = response.result;
-            next();
-          });
-        },
-        function(next) {
-          client.getBlockHash(count, function(err, response) {
-            if (err) {
-              return next(err);
-            }
-            invalidatedBlockHash = response.result;
-            next();
-          });
-        },
-        function(next) {
-          client.getBlock(invalidatedBlockHash, function(err, response) {
-            if (err) {
-              return next(err);
-            }
-            orphanedTransaction = response.result.tx[1];
-            should.exist(orphanedTransaction);
-            next();
-          });
-        },
-        function(next) {
-          client.invalidateBlock(invalidatedBlockHash, next);
+      async.series(
+        [
+          function (next) {
+            client.sendToAddress(testKey.toAddress(regtest).toString(), 10, function (err) {
+              if (err) {
+                return next(err);
+              }
+              client.generate(1, next);
+            });
+          },
+          function (next) {
+            client.getBlockCount(function (err, response) {
+              if (err) {
+                return next(err);
+              }
+              count = response.result;
+              next();
+            });
+          },
+          function (next) {
+            client.getBlockHash(count, function (err, response) {
+              if (err) {
+                return next(err);
+              }
+              invalidatedBlockHash = response.result;
+              next();
+            });
+          },
+          function (next) {
+            client.getBlock(invalidatedBlockHash, function (err, response) {
+              if (err) {
+                return next(err);
+              }
+              orphanedTransaction = response.result.tx[1];
+              should.exist(orphanedTransaction);
+              next();
+            });
+          },
+          function (next) {
+            client.invalidateBlock(invalidatedBlockHash, next);
+          },
+        ],
+        function (err) {
+          if (err) {
+            throw err;
+          }
+          done();
         }
-      ], function(err) {
-        if (err) {
-          throw err;
-        }
-        done();
-      });
+      );
     });
 
-    it('will not show confirmation count for orphaned transaction', function(done) {
+    it("will not show confirmation count for orphaned transaction", function (done) {
       // This test verifies that in the situation that the transaction is not in the mempool and
       // is included in an orphaned block transaction index that the confirmation count will be unconfirmed.
-      node.getDetailedTransaction(orphanedTransaction, function(err, data) {
+      node.getDetailedTransaction(orphanedTransaction, function (err, data) {
         if (err) {
           return done(err);
         }
@@ -752,7 +720,5 @@ describe('Node Functionality', function() {
         done();
       });
     });
-
   });
-
 });

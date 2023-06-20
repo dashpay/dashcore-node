@@ -1,13 +1,12 @@
-'use strict';
+"use strict";
 
-var should = require('chai').should();
-var sinon = require('sinon');
-var Bus = require('../lib/bus');
+var should = require("chai").should();
+var sinon = require("sinon");
+var Bus = require("../lib/bus");
 
-describe('Bus', function() {
-
-  describe('#subscribe', function() {
-    it('will call db and services subscribe function with the correct arguments', function() {
+describe("Bus", function () {
+  describe("#subscribe", function () {
+    it("will call db and services subscribe function with the correct arguments", function () {
       var subscribeDb = sinon.spy();
       var subscribeService = sinon.spy();
       var node = {
@@ -15,41 +14,41 @@ describe('Bus', function() {
           db: {
             getPublishEvents: sinon.stub().returns([
               {
-                name: 'dbtest',
+                name: "dbtest",
                 scope: this,
-                subscribe: subscribeDb
-              }
-            ])
+                subscribe: subscribeDb,
+              },
+            ]),
           },
           service1: {
             getPublishEvents: sinon.stub().returns([
               {
-                name: 'test',
+                name: "test",
                 scope: this,
                 subscribe: subscribeService,
-              }
-            ])
-          }
-        }
+              },
+            ]),
+          },
+        },
       };
-      var bus = new Bus({node: node});
-      bus.subscribe('dbtest', 'a', 'b', 'c');
-      bus.subscribe('test', 'a', 'b', 'c');
+      var bus = new Bus({ node: node });
+      bus.subscribe("dbtest", "a", "b", "c");
+      bus.subscribe("test", "a", "b", "c");
       subscribeService.callCount.should.equal(1);
       subscribeDb.callCount.should.equal(1);
       subscribeDb.args[0][0].should.equal(bus);
-      subscribeDb.args[0][1].should.equal('a');
-      subscribeDb.args[0][2].should.equal('b');
-      subscribeDb.args[0][3].should.equal('c');
+      subscribeDb.args[0][1].should.equal("a");
+      subscribeDb.args[0][2].should.equal("b");
+      subscribeDb.args[0][3].should.equal("c");
       subscribeService.args[0][0].should.equal(bus);
-      subscribeService.args[0][1].should.equal('a');
-      subscribeService.args[0][2].should.equal('b');
-      subscribeService.args[0][3].should.equal('c');
+      subscribeService.args[0][1].should.equal("a");
+      subscribeService.args[0][2].should.equal("b");
+      subscribeService.args[0][3].should.equal("c");
     });
   });
 
-  describe('#unsubscribe', function() {
-    it('will call db and services unsubscribe function with the correct arguments', function() {
+  describe("#unsubscribe", function () {
+    it("will call db and services unsubscribe function with the correct arguments", function () {
       var unsubscribeDb = sinon.spy();
       var unsubscribeService = sinon.spy();
       var node = {
@@ -57,41 +56,41 @@ describe('Bus', function() {
           db: {
             getPublishEvents: sinon.stub().returns([
               {
-                name: 'dbtest',
+                name: "dbtest",
                 scope: this,
-                unsubscribe: unsubscribeDb
-              }
-            ])
+                unsubscribe: unsubscribeDb,
+              },
+            ]),
           },
           service1: {
             getPublishEvents: sinon.stub().returns([
               {
-                name: 'test',
+                name: "test",
                 scope: this,
                 unsubscribe: unsubscribeService,
-              }
-            ])
-          }
-        }
+              },
+            ]),
+          },
+        },
       };
-      var bus = new Bus({node: node});
-      bus.unsubscribe('dbtest', 'a', 'b', 'c');
-      bus.unsubscribe('test', 'a', 'b', 'c');
+      var bus = new Bus({ node: node });
+      bus.unsubscribe("dbtest", "a", "b", "c");
+      bus.unsubscribe("test", "a", "b", "c");
       unsubscribeService.callCount.should.equal(1);
       unsubscribeDb.callCount.should.equal(1);
       unsubscribeDb.args[0][0].should.equal(bus);
-      unsubscribeDb.args[0][1].should.equal('a');
-      unsubscribeDb.args[0][2].should.equal('b');
-      unsubscribeDb.args[0][3].should.equal('c');
+      unsubscribeDb.args[0][1].should.equal("a");
+      unsubscribeDb.args[0][2].should.equal("b");
+      unsubscribeDb.args[0][3].should.equal("c");
       unsubscribeService.args[0][0].should.equal(bus);
-      unsubscribeService.args[0][1].should.equal('a');
-      unsubscribeService.args[0][2].should.equal('b');
-      unsubscribeService.args[0][3].should.equal('c');
+      unsubscribeService.args[0][1].should.equal("a");
+      unsubscribeService.args[0][2].should.equal("b");
+      unsubscribeService.args[0][3].should.equal("c");
     });
   });
 
-  describe('#close', function() {
-    it('will unsubscribe from all events', function() {
+  describe("#close", function () {
+    it("will unsubscribe from all events", function () {
       var unsubscribeDb = sinon.spy();
       var unsubscribeService = sinon.spy();
       var node = {
@@ -99,24 +98,24 @@ describe('Bus', function() {
           db: {
             getPublishEvents: sinon.stub().returns([
               {
-                name: 'dbtest',
+                name: "dbtest",
                 scope: this,
-                unsubscribe: unsubscribeDb
-              }
-            ])
+                unsubscribe: unsubscribeDb,
+              },
+            ]),
           },
           service1: {
             getPublishEvents: sinon.stub().returns([
               {
-                name: 'test',
+                name: "test",
                 scope: this,
-                unsubscribe: unsubscribeService
-              }
-            ])
-          }
-        }
+                unsubscribe: unsubscribeService,
+              },
+            ]),
+          },
+        },
       };
-      var bus = new Bus({node: node});
+      var bus = new Bus({ node: node });
       bus.close();
 
       unsubscribeDb.callCount.should.equal(1);
@@ -127,5 +126,4 @@ describe('Bus', function() {
       unsubscribeService.args[0][0].should.equal(bus);
     });
   });
-
 });

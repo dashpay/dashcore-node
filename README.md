@@ -1,5 +1,4 @@
-Dashcore Node
-============
+# Dashcore Node
 
 A Dash full node for building applications and services with Node.js. A node is extensible and can be configured to run additional services. At the minimum a node has an interface to [Dash Core (dashd) v0.13.0](https://github.com/dashpay/dash/tree/v0.13.0.x) for more advanced address queries. Additional services can be enabled to make a node more useful such as exposing new APIs, running a block explorer and wallet service.
 
@@ -23,6 +22,7 @@ Some plugins are available :
 - Insight-UI : `./bin/dashcore-node addservice @dashevo/insight-ui`
 
 You also might want to add these index to your dash.conf file :
+
 ```
 -addressindex
 -timestampindex
@@ -36,25 +36,25 @@ npm install @dashevo/dashcore-node
 ```
 
 ```javascript
-const dashcore = require('@dashevo/dashcore-node');
-const config = require('./dashcore-node.json');
+const dashcore = require("@dashevo/dashcore-node");
+const config = require("./dashcore-node.json");
 
 let node = dashcore.scaffold.start({ path: "", config: config });
-node.on('ready', function () {
-    console.log("Dash core started");
-    
-    node.services.dashd.on('tx', function(txData) {
-        let tx = new dashcore.lib.Transaction(txData);
-        console.log(tx);
-    });
+node.on("ready", function () {
+  console.log("Dash core started");
+
+  node.services.dashd.on("tx", function (txData) {
+    let tx = new dashcore.lib.Transaction(txData);
+    console.log(tx);
+  });
 });
 ```
 
 ## Prerequisites
 
-- Dash Core (dashd) (v0.13.0) with support for additional indexing *(see above)*
+- Dash Core (dashd) (v0.13.0) with support for additional indexing _(see above)_
 - Node.js v8+
-- ZeroMQ *(libzmq3-dev for Ubuntu/Debian or zeromq on OSX)*
+- ZeroMQ _(libzmq3-dev for Ubuntu/Debian or zeromq on OSX)_
 - ~50GB of disk storage
 - ~1GB of RAM
 
@@ -95,7 +95,6 @@ There are several add-on services available to extend the functionality of Bitco
 - [Bus](docs/bus.md) - Overview of the event bus constructor
 - [Release Process](docs/release.md) - Information about verifying a release and the release process.
 
-
 ## Setting up dev environment (with Insight)
 
 Prerequisite : Having a dashd node already runing `dashd --daemon`.
@@ -105,6 +104,7 @@ Insight-api (optional) : `git clone https://github.com/dashevo/insight-api -b de
 Insight-UI (optional) : `git clone https://github.com/dashevo/insight-ui -b develop`
 
 Install them :
+
 ```
 cd dashcore-node && npm install \
  && cd ../insight-ui && npm install \
@@ -112,6 +112,7 @@ cd dashcore-node && npm install \
 ```
 
 Symbolic linking in parent folder :
+
 ```
 npm link ../insight-api
 npm link ../insight-ui
