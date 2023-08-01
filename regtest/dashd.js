@@ -1,23 +1,23 @@
-'use strict';
+"use strict";
 
 // To run the tests: $ mocha -R spec regtest/dashd.js
 
-var path = require('path');
-var index = require('..');
+var path = require("path");
+var index = require("..");
 var log = index.log;
 
-var chai = require('chai');
-var dashcore = require('@dashevo/dashcore-lib');
+var chai = require("chai");
+var dashcore = require("@dashevo/dashcore-lib");
 var BN = dashcore.crypto.BN;
-var async = require('async');
-var rimraf = require('rimraf');
+var async = require("async");
+var rimraf = require("rimraf");
 var dashd;
 
 /* jshint unused: false */
 var should = chai.should();
 var assert = chai.assert;
-var sinon = require('sinon');
-var DashdRPC = require('@dashevo/dashd-rpc');
+var sinon = require("sinon");
+var DashdRPC = require("@dashevo/dashd-rpc");
 var transactionData = [];
 var blockHashes = [];
 var utxos;
@@ -26,102 +26,107 @@ var coinbasePrivateKey;
 var privateKey = dashcore.PrivateKey();
 var destKey = dashcore.PrivateKey();
 
-describe('Dashd Functionality', function() {
-
-  before(function(done) {
+describe("Dashd Functionality", function () {
+  before(function (done) {
     this.timeout(200000);
 
     // Add the regtest network
     dashcore.Networks.enableRegtest();
-    var regtestNetwork = dashcore.Networks.get('regtest');
+    var regtestNetwork = dashcore.Networks.get("regtest");
 
-    var datadir = __dirname + '/data';
+    var datadir = __dirname + "/data";
 
-    rimraf(datadir + '/regtest', function(err) {
-
+    rimraf(datadir + "/regtest", function (err) {
       if (err) {
         throw err;
       }
 
-      dashd = require('../').services.Dash({
+      dashd = require("../").services.Dash({
         spawn: {
           datadir: datadir,
-          exec: path.resolve(__dirname, process.env.HOME, './.dashcore/data/dashd')
+          exec: path.resolve(__dirname, process.env.HOME, "./.dashcore/data/dashd"),
         },
         node: {
           network: regtestNetwork,
-          getNetworkName: function() {
-            return 'regtest';
-          }
-        }
+          getNetworkName: function () {
+            return "regtest";
+          },
+        },
       });
 
-      dashd.on('error', function(err) {
+      dashd.on("error", function (err) {
         log.error('error="%s"', err.message);
       });
 
-      log.info('Waiting for Dash Core to initialize...');
+      log.info("Waiting for Dash Core to initialize...");
 
-      dashd.start(function() {
-        log.info('Dashd started');
+      dashd.start(function () {
+        log.info("Dashd started");
 
         client = new DashdRPC({
-          protocol: 'http',
-          host: '127.0.0.1',
+          protocol: "http",
+          host: "127.0.0.1",
           port: 30331,
-          user: 'dash',
-          pass: 'local321',
-          rejectUnauthorized: false
+          user: "dash",
+          pass: "local321",
+          rejectUnauthorized: false,
         });
 
-        log.info('Generating 100 blocks...');
+        log.info("Generating 100 blocks...");
 
         // Generate enough blocks so that the initial coinbase transactions
         // can be spent.
 
-        setImmediate(function() {
-          client.generate(150, function(err, response) {
+        setImmediate(function () {
+          client.generate(150, function (err, response) {
             if (err) {
               throw err;
             }
             blockHashes = response.result;
 
-            log.info('Preparing test data...');
+            log.info("Preparing test data...");
 
             // Get all of the unspent outputs
-            client.listUnspent(0, 150, function(err, response) {
+            client.listUnspent(0, 150, function (err, response) {
               utxos = response.result;
 
-              async.mapSeries(utxos, function(utxo, next) {
-                async.series([
-                  function(finished) {
-                    // Load all of the transactions for later testing
-                    client.getTransaction(utxo.txid, function(err, txresponse) {
-                      if (err) {
-                        throw err;
-                      }
-                      // add to the list of transactions for testing later
-                      transactionData.push(txresponse.result.hex);
-                      finished();
-                    });
-                  },
-                  function(finished) {
-                    // Get the private key for each utxo
-                    client.dumpPrivKey(utxo.address, function(err, privresponse) {
-                      if (err) {
-                        throw err;
-                      }
-                      utxo.privateKeyWIF = privresponse.result;
-                      finished();
-                    });
+              async.mapSeries(
+                utxos,
+                function (utxo, next) {
+                  async.series(
+                    [
+                      function (finished) {
+                        // Load all of the transactions for later testing
+                        client.getTransaction(utxo.txid, function (err, txresponse) {
+                          if (err) {
+                            throw err;
+                          }
+                          // add to the list of transactions for testing later
+                          transactionData.push(txresponse.result.hex);
+                          finished();
+                        });
+                      },
+                      function (finished) {
+                        // Get the private key for each utxo
+                        client.dumpPrivKey(utxo.address, function (err, privresponse) {
+                          if (err) {
+                            throw err;
+                          }
+                          utxo.privateKeyWIF = privresponse.result;
+                          finished();
+                        });
+                      },
+                    ],
+                    next
+                  );
+                },
+                function (err) {
+                  if (err) {
+                    throw err;
                   }
-                ], next);
-              }, function(err) {
-                if (err) {
-                  throw err;
+                  done();
                 }
-                done();
-              });
+              );
             });
           });
         });
@@ -129,19 +134,18 @@ describe('Dashd Functionality', function() {
     });
   });
 
-  after(function(done) {
+  after(function (done) {
     this.timeout(60000);
     dashd.node.stopping = true;
-    dashd.stop(function(err, result) {
+    dashd.stop(function (err, result) {
       done();
     });
   });
 
-  describe('get blocks by hash', function() {
-
-    [0,1,2,3,5,6,7,8,9].forEach(function(i) {
-      it('generated block ' + i, function(done) {
-        dashd.getBlock(blockHashes[i], function(err, block) {
+  describe("get blocks by hash", function () {
+    [0, 1, 2, 3, 5, 6, 7, 8, 9].forEach(function (i) {
+      it("generated block " + i, function (done) {
+        dashd.getBlock(blockHashes[i], function (err, block) {
           if (err) {
             throw err;
           }
@@ -153,10 +157,10 @@ describe('Dashd Functionality', function() {
     });
   });
 
-  describe('get blocks as buffers', function() {
-    [0,1,2,3,5,6,7,8,9].forEach(function(i) {
-      it('generated block ' + i, function(done) {
-        dashd.getRawBlock(blockHashes[i], function(err, block) {
+  describe("get blocks as buffers", function () {
+    [0, 1, 2, 3, 5, 6, 7, 8, 9].forEach(function (i) {
+      it("generated block " + i, function (done) {
+        dashd.getRawBlock(blockHashes[i], function (err, block) {
           if (err) {
             throw err;
           }
@@ -168,9 +172,9 @@ describe('Dashd Functionality', function() {
     });
   });
 
-  describe('get errors as error instances', function() {
-    it('will wrap an rpc into a javascript error', function(done) {
-      dashd.client.getBlock(1000000000, function(err, response) {
+  describe("get errors as error instances", function () {
+    it("will wrap an rpc into a javascript error", function (done) {
+      dashd.client.getBlock(1000000000, function (err, response) {
         var error = dashd._wrapRPCError(err);
         (error instanceof Error).should.equal(true);
         error.message.should.equal(err.message);
@@ -181,13 +185,12 @@ describe('Dashd Functionality', function() {
     });
   });
 
-  describe('get blocks by height', function() {
-
-    [0,1,2,3,4,5,6,7,8,9].forEach(function(i) {
-      it('generated block ' + i, function(done) {
+  describe("get blocks by height", function () {
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(function (i) {
+      it("generated block " + i, function (done) {
         // add the genesis block
         var height = i + 1;
-        dashd.getBlock(i + 1, function(err, block) {
+        dashd.getBlock(i + 1, function (err, block) {
           if (err) {
             throw err;
           }
@@ -198,78 +201,77 @@ describe('Dashd Functionality', function() {
       });
     });
 
-    it('will get error with number greater than tip', function(done) {
-      dashd.getBlock(1000000000, function(err, response) {
+    it("will get error with number greater than tip", function (done) {
+      dashd.getBlock(1000000000, function (err, response) {
         should.exist(err);
         err.code.should.equal(-8);
         done();
       });
     });
-
   });
 
-  describe('get transactions by hash', function() {
-    [0,1,2,3,4,5,6,7,8,9].forEach(function(i) {
-      it('for tx ' + i, function(done) {
+  describe("get transactions by hash", function () {
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(function (i) {
+      it("for tx " + i, function (done) {
         var txhex = transactionData[i];
         var tx = new dashcore.Transaction();
         tx.fromString(txhex);
-        dashd.getTransaction(tx.hash, function(err, response) {
+        dashd.getTransaction(tx.hash, function (err, response) {
           if (err) {
             throw err;
           }
-          assert(response.toString('hex') === txhex, 'incorrect tx data result');
+          assert(response.toString("hex") === txhex, "incorrect tx data result");
           done();
         });
       });
     });
 
-    it('will return error if the transaction does not exist', function(done) {
-      var txid = '6226c407d0e9705bdd7158e60983e37d0f5d23529086d6672b07d9238d5aa618';
-      dashd.getTransaction(txid, function(err, response) {
+    it("will return error if the transaction does not exist", function (done) {
+      var txid = "6226c407d0e9705bdd7158e60983e37d0f5d23529086d6672b07d9238d5aa618";
+      dashd.getTransaction(txid, function (err, response) {
         should.exist(err);
         done();
       });
     });
   });
 
-  describe('get transactions as buffers', function() {
-    [0,1,2,3,4,5,6,7,8,9].forEach(function(i) {
-      it('for tx ' + i, function(done) {
+  describe("get transactions as buffers", function () {
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(function (i) {
+      it("for tx " + i, function (done) {
         var txhex = transactionData[i];
         var tx = new dashcore.Transaction();
         tx.fromString(txhex);
-        dashd.getRawTransaction(tx.hash, function(err, response) {
+        dashd.getRawTransaction(tx.hash, function (err, response) {
           if (err) {
             throw err;
           }
           response.should.be.instanceOf(Buffer);
-          assert(response.toString('hex') === txhex, 'incorrect tx data result');
+          assert(response.toString("hex") === txhex, "incorrect tx data result");
           done();
         });
       });
     });
 
-    it('will return error if the transaction does not exist', function(done) {
-      var txid = '6226c407d0e9705bdd7158e60983e37d0f5d23529086d6672b07d9238d5aa618';
-      dashd.getRawTransaction(txid, function(err, response) {
+    it("will return error if the transaction does not exist", function (done) {
+      var txid = "6226c407d0e9705bdd7158e60983e37d0f5d23529086d6672b07d9238d5aa618";
+      dashd.getRawTransaction(txid, function (err, response) {
         should.exist(err);
         done();
       });
     });
   });
 
-  describe('get block header', function() {
+  describe("get block header", function () {
     var expectedWork = new BN(6);
-    [1,2,3,4,5,6,7,8,9].forEach(function(i) {
-      it('generate block ' + i, function(done) {
-        dashd.getBlockHeader(blockHashes[i], function(err, blockIndex) {
+    [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(function (i) {
+      it("generate block " + i, function (done) {
+        dashd.getBlockHeader(blockHashes[i], function (err, blockIndex) {
           if (err) {
             return done(err);
           }
           should.exist(blockIndex);
           should.exist(blockIndex.chainWork);
-          var work = new BN(blockIndex.chainWork, 'hex');
+          var work = new BN(blockIndex.chainWork, "hex");
           work.toString(16).should.equal(expectedWork.toString(16));
           expectedWork = expectedWork.add(new BN(2));
           should.exist(blockIndex.prevHash);
@@ -280,8 +282,8 @@ describe('Dashd Functionality', function() {
         });
       });
     });
-    it('will get null prevHash for the genesis block', function(done) {
-      dashd.getBlockHeader(0, function(err, header) {
+    it("will get null prevHash for the genesis block", function (done) {
+      dashd.getBlockHeader(0, function (err, header) {
         if (err) {
           return done(err);
         }
@@ -290,22 +292,22 @@ describe('Dashd Functionality', function() {
         done();
       });
     });
-    it('will get error for block not found', function(done) {
-      dashd.getBlockHeader('notahash', function(err, header) {
+    it("will get error for block not found", function (done) {
+      dashd.getBlockHeader("notahash", function (err, header) {
         should.exist(err);
         done();
       });
     });
   });
 
-  describe('get block index by height', function() {
+  describe("get block index by height", function () {
     var expectedWork = new BN(6);
-    [2,3,4,5,6,7,8,9].forEach(function(i) {
-      it('generate block ' + i, function() {
-        dashd.getBlockHeader(i, function(err, header) {
+    [2, 3, 4, 5, 6, 7, 8, 9].forEach(function (i) {
+      it("generate block " + i, function () {
+        dashd.getBlockHeader(i, function (err, header) {
           should.exist(header);
           should.exist(header.chainWork);
-          var work = new BN(header.chainWork, 'hex');
+          var work = new BN(header.chainWork, "hex");
           work.toString(16).should.equal(expectedWork.toString(16));
           expectedWork = expectedWork.add(new BN(2));
           should.exist(header.prevHash);
@@ -315,18 +317,16 @@ describe('Dashd Functionality', function() {
         });
       });
     });
-    it('will get error with number greater than tip', function(done) {
-      dashd.getBlockHeader(100000, function(err, header) {
+    it("will get error with number greater than tip", function (done) {
+      dashd.getBlockHeader(100000, function (err, header) {
         should.exist(err);
         done();
       });
     });
   });
 
-  describe('send transaction functionality', function() {
-
-    it('will not error and return the transaction hash', function(done) {
-
+  describe("send transaction functionality", function () {
+    it("will not error and return the transaction hash", function (done) {
       // create and sign the transaction
       var tx = dashcore.Transaction();
       tx.from(utxos[0]);
@@ -335,22 +335,21 @@ describe('Dashd Functionality', function() {
       tx.sign(dashcore.PrivateKey.fromWIF(utxos[0].privateKeyWIF));
 
       // test sending the transaction
-      dashd.sendTransaction(tx.serialize(), function(err, hash) {
+      dashd.sendTransaction(tx.serialize(), function (err, hash) {
         if (err) {
           return done(err);
         }
         hash.should.equal(tx.hash);
         done();
       });
-
     });
 
-    it('will throw an error if an unsigned transaction is sent', function(done) {
+    it("will throw an error if an unsigned transaction is sent", function (done) {
       var tx = dashcore.Transaction();
       tx.from(utxos[1]);
       tx.change(privateKey.toAddress());
       tx.to(destKey.toAddress(), utxos[1].amount * 1e8 - 1000);
-      dashd.sendTransaction(tx.uncheckedSerialize(), function(err, hash) {
+      dashd.sendTransaction(tx.uncheckedSerialize(), function (err, hash) {
         should.exist(err);
         (err instanceof Error).should.equal(true);
         should.not.exist(hash);
@@ -358,13 +357,13 @@ describe('Dashd Functionality', function() {
       });
     });
 
-    it('will throw an error for unexpected types (tx decode failed)', function(done) {
-      var garbage = new Buffer('abcdef', 'hex');
-      dashd.sendTransaction(garbage, function(err, hash) {
+    it("will throw an error for unexpected types (tx decode failed)", function (done) {
+      var garbage = new Buffer("abcdef", "hex");
+      dashd.sendTransaction(garbage, function (err, hash) {
         should.exist(err);
         should.not.exist(hash);
         var num = 23;
-        dashd.sendTransaction(num, function(err, hash) {
+        dashd.sendTransaction(num, function (err, hash) {
           should.exist(err);
           (err instanceof Error).should.equal(true);
           should.not.exist(hash);
@@ -373,7 +372,7 @@ describe('Dashd Functionality', function() {
       });
     });
 
-    it('will emit "tx" events', function(done) {
+    it('will emit "tx" events', function (done) {
       var tx = dashcore.Transaction();
       tx.from(utxos[2]);
       tx.change(privateKey.toAddress());
@@ -382,23 +381,22 @@ describe('Dashd Functionality', function() {
 
       var serialized = tx.serialize();
 
-      dashd.once('tx', function(buffer) {
-        buffer.toString('hex').should.equal(serialized);
+      dashd.once("tx", function (buffer) {
+        buffer.toString("hex").should.equal(serialized);
         done();
       });
-      dashd.sendTransaction(serialized, function(err, hash) {
+      dashd.sendTransaction(serialized, function (err, hash) {
         if (err) {
           return done(err);
         }
         should.exist(hash);
       });
     });
-
   });
 
-  describe('fee estimation', function() {
-    it('will estimate fees', function(done) {
-      dashd.estimateFee(1, function(err, fees) {
+  describe("fee estimation", function () {
+    it("will estimate fees", function (done) {
+      dashd.estimateFee(1, function (err, fees) {
         if (err) {
           return done(err);
         }
@@ -408,15 +406,15 @@ describe('Dashd Functionality', function() {
     });
   });
 
-  describe('tip updates', function() {
-    it('will get an event when the tip is new', function(done) {
+  describe("tip updates", function () {
+    it("will get an event when the tip is new", function (done) {
       this.timeout(4000);
-      dashd.on('tip', function(height) {
+      dashd.on("tip", function (height) {
         if (height === 151) {
           done();
         }
       });
-      client.generate(1, function(err, response) {
+      client.generate(1, function (err, response) {
         if (err) {
           throw err;
         }
@@ -424,19 +422,19 @@ describe('Dashd Functionality', function() {
     });
   });
 
-  describe('get detailed transaction', function() {
-    it('should include details for coinbase tx', function(done) {
-      dashd.getDetailedTransaction(utxos[0].txid, function(err, tx) {
+  describe("get detailed transaction", function () {
+    it("should include details for coinbase tx", function (done) {
+      dashd.getDetailedTransaction(utxos[0].txid, function (err, tx) {
         if (err) {
           return done(err);
         }
         should.exist(tx.height);
-        tx.height.should.be.a('number');
+        tx.height.should.be.a("number");
         should.exist(tx.blockTimestamp);
         should.exist(tx.blockHash);
         tx.coinbase.should.equal(true);
         tx.version.should.equal(1);
-        tx.hex.should.be.a('string');
+        tx.hex.should.be.a("string");
         tx.locktime.should.equal(0);
         tx.feeSatoshis.should.equal(0);
         tx.outputSatoshis.should.equal(500 * 1e8);
@@ -445,30 +443,30 @@ describe('Dashd Functionality', function() {
         tx.outputs.length.should.equal(1);
         should.equal(tx.inputs[0].prevTxId, null);
         should.equal(tx.inputs[0].outputIndex, null);
-        tx.inputs[0].script.should.be.a('string');
+        tx.inputs[0].script.should.be.a("string");
         should.equal(tx.inputs[0].scriptAsm, null);
         should.equal(tx.inputs[0].address, null);
         should.equal(tx.inputs[0].satoshis, null);
         tx.outputs[0].satoshis.should.equal(500 * 1e8);
-        tx.outputs[0].script.should.be.a('string');
-        tx.outputs[0].scriptAsm.should.be.a('string');
-        tx.outputs[0].spentTxId.should.be.a('string');
+        tx.outputs[0].script.should.be.a("string");
+        tx.outputs[0].scriptAsm.should.be.a("string");
+        tx.outputs[0].spentTxId.should.be.a("string");
         tx.outputs[0].spentIndex.should.equal(0);
-        tx.outputs[0].spentHeight.should.be.a('number');
-        tx.outputs[0].address.should.be.a('string');
+        tx.outputs[0].spentHeight.should.be.a("number");
+        tx.outputs[0].address.should.be.a("string");
         tx.txlock.should.equal(false);
         done();
       });
     });
   });
 
-  describe('#getInfo', function() {
-    it('will get information', function(done) {
-      dashd.getInfo(function(err, info) {
+  describe("#getInfo", function () {
+    it("will get information", function (done) {
+      dashd.getInfo(function (err, info) {
         if (err) {
           return done(err);
         }
-        info.network.should.equal('regtest');
+        info.network.should.equal("regtest");
         should.exist(info);
         should.exist(info.version);
         should.exist(info.blocks);
@@ -482,5 +480,4 @@ describe('Dashd Functionality', function() {
       });
     });
   });
-
 });

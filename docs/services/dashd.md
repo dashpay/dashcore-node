@@ -9,43 +9,41 @@ The configuration should include a "connect" configuration in "dashd". This defi
 ```json5
 {
   // ...
-  "services": [
-    "dashd"
-  ],
-  "servicesConfig": {
-    "dashd": {
-      "connect": [
+  services: ["dashd"],
+  servicesConfig: {
+    dashd: {
+      connect: [
         {
-          "rpchost": "127.0.0.1",
-          "rpcport": 30521,
-          "rpcuser": "dashrpc",
-          "rpcpassword": "local321",
-          "zmqpubrawtx": "tcp://127.0.0.1:30611"
+          rpchost: "127.0.0.1",
+          rpcport: 30521,
+          rpcuser: "dashrpc",
+          rpcpassword: "local321",
+          zmqpubrawtx: "tcp://127.0.0.1:30611",
         },
         {
-          "rpchost": "127.0.0.1",
-          "rpcport": 30522,
-          "rpcuser": "dashrpc",
-          "rpcpassword": "local321",
-          "zmqpubrawtx": "tcp://127.0.0.1:30622"
+          rpchost: "127.0.0.1",
+          rpcport: 30522,
+          rpcuser: "dashrpc",
+          rpcpassword: "local321",
+          zmqpubrawtx: "tcp://127.0.0.1:30622",
         },
         {
-          "rpchost": "127.0.0.1",
-          "rpcport": 30523,
-          "rpcuser": "dashrpc",
-          "rpcpassword": "local321",
-          "zmqpubrawtx": "tcp://127.0.0.1:30633"
-        }
-      ]
-    }
-  }
+          rpchost: "127.0.0.1",
+          rpcport: 30523,
+          rpcuser: "dashrpc",
+          rpcpassword: "local321",
+          zmqpubrawtx: "tcp://127.0.0.1:30633",
+        },
+      ],
+    },
+  },
 }
 ```
 
 **Note**: For detailed example configuration see [`regtest/cluster.js`](regtest/cluster.js)
 
-
 ## API Documentation
+
 Methods are available by directly interfacing with the service:
 
 ```js
@@ -60,31 +58,31 @@ node.services.dashd.<methodName>
 // gives the block hashes sorted from low to high within a range of timestamps
 var high = 1460393372; // Mon Apr 11 2016 12:49:25 GMT-0400 (EDT)
 var low = 1460306965; // Mon Apr 10 2016 12:49:25 GMT-0400 (EDT)
-node.services.dashd.getBlockHashesByTimestamp(high, low, function(err, blockHashes) {
+node.services.dashd.getBlockHashesByTimestamp(high, low, function (err, blockHashes) {
   //...
 });
 
 // get the current tip of the chain
-node.services.dashd.getBestBlockHash(function(err, blockHash) {
+node.services.dashd.getBestBlockHash(function (err, blockHash) {
   //...
-})
+});
 ```
 
 **Getting Synchronization and Node Status**
 
 ```js
 // gives a boolean if the daemon is fully synced (not the initial block download)
-node.services.dashd.isSynced(function(err, synced) {
+node.services.dashd.isSynced(function (err, synced) {
   //...
-})
+});
 
 // gives the current estimate of blockchain download as a percentage
-node.services.dashd.syncPercentage(function(err, percent) {
+node.services.dashd.syncPercentage(function (err, percent) {
   //...
 });
 
 // gives information about the chain including total number of blocks
-node.services.dashd.getInfo(function(err, info) {
+node.services.dashd.getInfo(function (err, info) {
   //...
 });
 ```
@@ -94,7 +92,7 @@ node.services.dashd.getInfo(function(err, info) {
 ```js
 // will generate a block for the "regtest" network (development purposes)
 var numberOfBlocks = 10;
-node.services.dashd.generateBlock(numberOfBlocks, function(err, blockHashes) {
+node.services.dashd.generateBlock(numberOfBlocks, function (err, blockHashes) {
   //...
 });
 ```
@@ -136,8 +134,8 @@ node.services.dashd.getBlockOverview(blockHash, function(err, blockOverview) {
 Get a transaction asynchronously by reading it from disk:
 
 ```js
-var txid = '3dba349df7225e071179256eea2195083cd89985124be3b05e48de509cf1e268';
-node.services.dashd.getRawTransaction(txid, function(err, transactionBuffer) {
+var txid = "3dba349df7225e071179256eea2195083cd89985124be3b05e48de509cf1e268";
+node.services.dashd.getRawTransaction(txid, function (err, transactionBuffer) {
   if (err) {
     throw err;
   }
@@ -145,12 +143,12 @@ node.services.dashd.getRawTransaction(txid, function(err, transactionBuffer) {
 });
 
 // get a bitcore object of the transaction (as above)
-node.services.dashd.getTransaction(txid, function(err, transaction) {
+node.services.dashd.getTransaction(txid, function (err, transaction) {
   //...
 });
 
 // retrieve the transaction with input values, fees, spent and block info
-node.services.dashd.getDetailedTransaction(txid, function(err, transaction) {
+node.services.dashd.getDetailedTransaction(txid, function (err, transaction) {
   //...
 });
 ```
@@ -159,11 +157,11 @@ Send a transaction to the network:
 
 ```js
 var numberOfBlocks = 3;
-node.services.dashd.estimateFee(numberOfBlocks, function(err, feesPerKilobyte) {
+node.services.dashd.estimateFee(numberOfBlocks, function (err, feesPerKilobyte) {
   //...
 });
 
-node.services.dashd.sendTransaction(transaction.serialize(), function(err, hash) {
+node.services.dashd.sendTransaction(transaction.serialize(), function (err, hash) {
   //...
 });
 ```
@@ -175,8 +173,8 @@ node.services.dashd.sendTransaction(transaction.serialize(), function(err, hash)
 One of the most common uses will be to retrieve unspent outputs necessary to create a transaction, here is how to get the unspent outputs for an address:
 
 ```js
-var address = 'yegvhonA7HaRvBqp57RVncFAuuqRbMQNXk';
-node.services.dashd.getAddressUnspentOutputs(address, options, function(err, unspentOutputs) {
+var address = "yegvhonA7HaRvBqp57RVncFAuuqRbMQNXk";
+node.services.dashd.getAddressUnspentOutputs(address, options, function (err, unspentOutputs) {
   // see below
 });
 ```
@@ -186,22 +184,22 @@ The `unspentOutputs` will have the format:
 ```js
 [
   {
-    address: 'yegvhonA7HaRvBqp57RVncFAuuqRbMQNXk',
-    txid: '65e991800c93f8272c38f28366ca901d3bb9096d34598f2903c5578ec277c85d',
+    address: "yegvhonA7HaRvBqp57RVncFAuuqRbMQNXk",
+    txid: "65e991800c93f8272c38f28366ca901d3bb9096d34598f2903c5578ec277c85d",
     outputIndex: 1,
     height: 150,
     satoshis: 281250000,
-    script: '76a914c982406f087057a97456e48d335546ae8d93a03c88ac',
-    confirmations: 3
-  }
-]
+    script: "76a914c982406f087057a97456e48d335546ae8d93a03c88ac",
+    confirmations: 3,
+  },
+];
 ```
 
 **View Balances**
 
 ```js
-var address = 'yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX';
-node.services.dashd.getAddressBalance(address, options, function(err, balance) {
+var address = "yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX";
+node.services.dashd.getAddressBalance(address, options, function (err, balance) {
   // balance will be in satoshis with "received" and "balance"
 });
 ```
@@ -211,13 +209,13 @@ node.services.dashd.getAddressBalance(address, options, function(err, balance) {
 This method will give history of an address limited by a range of block heights by using the "start" and "end" arguments. The "start" value is the more recent, and greater, block height. The "end" value is the older, and lesser, block height. This feature is most useful for synchronization as previous history can be omitted. Furthermore for large ranges of block heights, results can be paginated by using the "from" and "to" arguments.
 
 ```js
-var addresses = ['yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX'];
+var addresses = ["yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX"];
 var options = {
   start: 345000,
   end: 344000,
-  queryMempool: true
+  queryMempool: true,
 };
-node.services.dashd.getAddressHistory(addresses, options, function(err, history) {
+node.services.dashd.getAddressHistory(addresses, options, function (err, history) {
   // see below
 });
 ```
@@ -245,12 +243,12 @@ The history format will be:
 **View Address Summary**
 
 ```js
-var address = 'yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX';
+var address = "yTyBtDZp16HtS1jpNd1vD11y6LSyvm1XzX";
 var options = {
-  noTxList: false
+  noTxList: false,
 };
 
-node.services.dashd.getAddressSummary(address, options, function(err, summary) {
+node.services.dashd.getAddressSummary(address, options, function (err, summary) {
   // see below
 });
 ```
@@ -270,32 +268,35 @@ The `summary` will have the format (values are in satoshis):
   ]
 }
 ```
+
 **Notes**:
-- `totalReceived` does not exclude change *(the amount of satoshis originating from the same address)*
-- `unconfirmedBalance` is the delta that the unconfirmed transactions have on the total balance *(can be both positive and negative)*
+
+- `totalReceived` does not exclude change _(the amount of satoshis originating from the same address)_
+- `unconfirmedBalance` is the delta that the unconfirmed transactions have on the total balance _(can be both positive and negative)_
 - `unconfirmedAppearances` is the total number of unconfirmed transactions
 - `appearances` is the total confirmed transactions
-- `txids` Are sorted in block order with the most recent at the beginning. A maximum of 1000 *(default)* will be returned, the `from` and `to` options can be used to get further values.
-
+- `txids` Are sorted in block order with the most recent at the beginning. A maximum of 1000 _(default)_ will be returned, the `from` and `to` options can be used to get further values.
 
 ## Events
+
 The Dash Service exposes two events via the Bus, and there are a few events that can be directly registered:
 
 ```js
-node.services.dashd.on('tip', function(blockHash) {
+node.services.dashd.on("tip", function (blockHash) {
   // a new block tip has been added, if there is a rapid update (with a second) this will not emit every tip update
 });
 
-node.services.dashd.on('tx', function(transactionBuffer) {
+node.services.dashd.on("tx", function (transactionBuffer) {
   // a new transaction has entered the mempool
 });
 
-node.services.dashd.on('block', function(blockHash) {
+node.services.dashd.on("block", function (blockHash) {
   // a new block has been added
 });
 ```
 
 For details on instantiating a bus for a node, see the [Bus Documentation](../bus.md).
+
 - Name: `dashd/rawtransaction`
 - Name: `dashd/hashblock`
 - Name: `dashd/addresstxid`, Arguments: [address, address...]
@@ -303,19 +304,19 @@ For details on instantiating a bus for a node, see the [Bus Documentation](../bu
 **Examples:**
 
 ```js
-bus.subscribe('dashd/rawtransaction');
-bus.subscribe('dashd/hashblock');
-bus.subscribe('dashd/addresstxid', ['XxoNntPX7RNFKHUhuGNUthb1UQpYnKuCsk']);
+bus.subscribe("dashd/rawtransaction");
+bus.subscribe("dashd/hashblock");
+bus.subscribe("dashd/addresstxid", ["XxoNntPX7RNFKHUhuGNUthb1UQpYnKuCsk"]);
 
-bus.on('dashd/rawtransaction', function(transactionHex) {
+bus.on("dashd/rawtransaction", function (transactionHex) {
   //...
 });
 
-bus.on('dashd/hashblock', function(blockhashHex) {
+bus.on("dashd/hashblock", function (blockhashHex) {
   //...
 });
 
-bus.on('dashd/addresstxid', function(data) {
+bus.on("dashd/addresstxid", function (data) {
   // data.address;
   // data.txid;
 });
