@@ -1,45 +1,39 @@
-'use strict';
+"use strict";
 
-var fs = require('fs');
-var path = require('path');
-var should = require('chai').should();
-var sinon = require('sinon');
-var rimraf = require('rimraf');
+var fs = require("fs");
+var path = require("path");
+var should = require("chai").should();
+var sinon = require("sinon");
+var rimraf = require("rimraf");
 
-var findConfig = require('../../lib/scaffold/find-config');
+var findConfig = require("../../lib/scaffold/find-config");
 
-describe('#findConfig', function() {
-
-  var testDir = path.resolve(__dirname, '../temporary-test-data');
+describe("#findConfig", function () {
+  var testDir = path.resolve(__dirname, "../temporary-test-data");
   var expectedConfig = {
-    name: 'My Node'
+    name: "My Node",
   };
 
-  before(function(done) {
+  before(function (done) {
     // setup testing directories
-    fs.mkdir(testDir + '/p2/p1/p0', { recursive: true }, function(err) {
+    fs.mkdir(testDir + "/p2/p1/p0", { recursive: true }, function (err) {
       if (err) {
         throw err;
       }
-      fs.writeFile(
-        testDir + '/p2/dashcore-node.json',
-        JSON.stringify(expectedConfig),
-        function() {
-          fs.mkdir(testDir + '/e0', { recursive: true }, function(err) {
-            if (err) {
-              throw err;
-            }
-            done();
-          });
-        }
-      );
+      fs.writeFile(testDir + "/p2/dashcore-node.json", JSON.stringify(expectedConfig), function () {
+        fs.mkdir(testDir + "/e0", { recursive: true }, function (err) {
+          if (err) {
+            throw err;
+          }
+          done();
+        });
+      });
     });
-
   });
 
-  after(function(done) {
+  after(function (done) {
     // cleanup testing directories
-    rimraf(testDir, function(err) {
+    rimraf(testDir, function (err) {
       if (err) {
         throw err;
       }
@@ -47,32 +41,28 @@ describe('#findConfig', function() {
     });
   });
 
-
-  describe('will find a configuration file', function() {
-
-    it('in the current directory', function() {
-      var config = findConfig(path.resolve(testDir, 'p2'));
-      config.path.should.equal(path.resolve(testDir, 'p2'));
+  describe("will find a configuration file", function () {
+    it("in the current directory", function () {
+      var config = findConfig(path.resolve(testDir, "p2"));
+      config.path.should.equal(path.resolve(testDir, "p2"));
       config.config.should.deep.equal(expectedConfig);
     });
 
-    it('in a parent directory', function() {
-      var config = findConfig(path.resolve(testDir,  'p2/p1'));
-      config.path.should.equal(path.resolve(testDir, 'p2'));
+    it("in a parent directory", function () {
+      var config = findConfig(path.resolve(testDir, "p2/p1"));
+      config.path.should.equal(path.resolve(testDir, "p2"));
       config.config.should.deep.equal(expectedConfig);
     });
 
-    it('recursively find in parent directories', function() {
-      var config = findConfig(path.resolve(testDir,  'p2/p1/p0'));
-      config.path.should.equal(path.resolve(testDir, 'p2'));
+    it("recursively find in parent directories", function () {
+      var config = findConfig(path.resolve(testDir, "p2/p1/p0"));
+      config.path.should.equal(path.resolve(testDir, "p2"));
       config.config.should.deep.equal(expectedConfig);
     });
-
   });
 
-  it('will return false if missing a configuration', function() {
-    var config = findConfig(path.resolve(testDir,  'e0'));
+  it("will return false if missing a configuration", function () {
+    var config = findConfig(path.resolve(testDir, "e0"));
     config.should.equal(false);
   });
-
 });

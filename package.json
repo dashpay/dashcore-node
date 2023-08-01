@@ -31,6 +31,7 @@
   },
   "scripts": {
     "test": "mocha -R spec --recursive",
+    "fmt": "npx -p prettier@2.x -- prettier -w '**/*.{js,md}'",
     "regtest": "./regtest/regtest",
     "jshint": "jshint --reporter=node_modules/jshint-stylish ./lib",
     "coverage": "istanbul cover _mocha -- --recursive",

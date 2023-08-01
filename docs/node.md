@@ -1,7 +1,9 @@
 # Node
+
 A node represents a collection of services that are loaded together. For more information about services, please see the [Services Documentation](services.md).
 
 ## API Documentation
+
 - `start()` - Will start the node's services in the correct order based on the dependencies of a service.
 - `stop()` - Will stop the node's services.
 - `openBus()` - Will create a new event bus to subscribe to events.
@@ -13,39 +15,38 @@ A node represents a collection of services that are loaded together. For more in
 ## Example Usage
 
 ```js
-
-var index = require('bitcore-node-dash');
+var index = require("bitcore-node-dash");
 var Bitcoin = index.services.Bitcoin;
 var Node = index.Node;
 
 var configuration = {
-  datadir: '/home/user/.bitcoin',
-  network: 'testnet',
+  datadir: "/home/user/.bitcoin",
+  network: "testnet",
   services: [
     {
-      name: 'bitcoind',
+      name: "bitcoind",
       module: Bitcoin,
-      config: {}
-    }
-  ]
+      config: {},
+    },
+  ],
 };
 
 var node = new Node(configuration);
 
-node.start(function() {
-  //start the node so the node.on('ready') is actually called. 
+node.start(function () {
+  //start the node so the node.on('ready') is actually called.
 });
 
-node.on('ready', function() {
-  console.log('Bitcoin Node Ready');
+node.on("ready", function () {
+  console.log("Bitcoin Node Ready");
 });
 
-node.on('error', function(err) {
+node.on("error", function (err) {
   console.error(err);
 });
 
 // shutdown the node
-node.stop(function() {
+node.stop(function () {
   // the shutdown is complete
 });
 ```
