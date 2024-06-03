@@ -38,6 +38,11 @@ describe('Dash Service', function() {
     }
   };
 
+  var RPC_IN_WARMUP_ERROR = new Error('Verifying blocks...');
+  Object.assign(RPC_IN_WARMUP_ERROR, {
+    code: DashService.E_RPC_IN_WARMUP
+  })
+
   describe('@constructor', function() {
     it('will create an instance', function() {
       var dashd = new DashService(baseConfig);
@@ -1592,9 +1597,9 @@ describe('Dash Service', function() {
         done();
       });
     });
-    it('will log when error is RPC_IN_WARMUP', function(done) {
+    it('will throw when error is RPC_IN_WARMUP outside of retry', function(done) {
       var dashd = new DashService(baseConfig);
-      var getBestBlockHash = sinon.stub().callsArgWith(0, {code: -28, message: 'Verifying blocks...'});
+      var getBestBlockHash = sinon.stub().callsArgWith(0, RPC_IN_WARMUP_ERROR);
       var node = {
         client: {
           getBestBlockHash: getBestBlockHash
@@ -1602,7 +1607,7 @@ describe('Dash Service', function() {
       };
       dashd._loadTipFromNode(node, function(err) {
         err.should.be.instanceof(Error);
-        log.warn.callCount.should.equal(1);
+        log.warn.callCount.should.equal(0);
         done();
       });
     });
@@ -1968,7 +1973,38 @@ describe('Dash Service', function() {
         process.emit('exit', 1);
       });
     });
-    it('will give error after 60 retries', function(done) {
+    it('will give error after 60 retries of RPC_IN_WARMUP warning', function(done) {
+      var process = new EventEmitter();
+      var spawn = sinon.stub().returns(process);
+      var TestDashService = proxyquire('../../lib/services/dashd', {
+        fs: {
+          readFileSync: readFileSync
+        },
+        child_process: {
+          spawn: spawn
+        }
+      });
+      var dashd = new TestDashService(baseConfig);
+      dashd.startRetryInterval = 1;
+      dashd._loadSpawnConfiguration = sinon.stub();
+      dashd.spawn = {};
+      dashd.spawn.exec = 'testexec';
+      dashd.spawn.configPath = 'testdir/dash.conf';
+      dashd.spawn.datadir = 'testdir';
+      dashd.spawn.config = {};
+      dashd.spawn.config.rpcport = 20001;
+      dashd.spawn.config.rpcuser = 'dash';
+      dashd.spawn.config.rpcpassword = 'password';
+      dashd.spawn.config.zmqpubrawtx = 'tcp://127.0.0.1:30001';
+      dashd.spawn.config.zmqpubrawtxlock = 'tcp://127.0.0.1:30001';
+      dashd._loadTipFromNode = sinon.stub().callsArgWith(1, RPC_IN_WARMUP_ERROR);
+      dashd._spawnChildProcess(function(err) {
+        dashd._loadTipFromNode.callCount.should.equal(60);
+        err.should.be.instanceof(Error);
+        done();
+      });
+    });
+    it('will give error WITHOUT retrying for fatal and unknown errors', function(done) {
       var process = new EventEmitter();
       var spawn = sinon.stub().returns(process);
       var TestDashService = proxyquire('../../lib/services/dashd', {
@@ -1994,7 +2030,7 @@ describe('Dash Service', function() {
       dashd.spawn.config.zmqpubrawtxlock = 'tcp://127.0.0.1:30001';
       dashd._loadTipFromNode = sinon.stub().callsArgWith(1, new Error('test'));
       dashd._spawnChildProcess(function(err) {
-        dashd._loadTipFromNode.callCount.should.equal(60);
+        dashd._loadTipFromNode.callCount.should.equal(1);
         err.should.be.instanceof(Error);
         done();
       });
@@ -2058,14 +2094,25 @@ describe('Dash Service', function() {
         done();
       });
     });
-    it('will give error from loadTipFromNode after 60 retries', function(done) {
+    it('will give error for warnings from loadTipFromNode after 60 retries', function(done) {
+      var dashd = new DashService(baseConfig);
+      dashd._loadTipFromNode = sinon.stub().callsArgWith(1, RPC_IN_WARMUP_ERROR);
+      dashd.startRetryInterval = 1;
+      var config = {};
+      dashd._connectProcess(config, function(err) {
+        err.should.be.instanceof(Error);
+        dashd._loadTipFromNode.callCount.should.equal(60);
+        done();
+      });
+    });
+    it('will immediately fail from loadTipFromNode for fatal and unknown errors', function(done) {
       var dashd = new DashService(baseConfig);
       dashd._loadTipFromNode = sinon.stub().callsArgWith(1, new Error('test'));
       dashd.startRetryInterval = 1;
       var config = {};
       dashd._connectProcess(config, function(err) {
         err.should.be.instanceof(Error);
-        dashd._loadTipFromNode.callCount.should.equal(60);
+        dashd._loadTipFromNode.callCount.should.equal(1);
         done();
       });
     });
