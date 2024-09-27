@@ -1477,7 +1477,7 @@ describe('Dash Service', function() {
         return socket;
       };
       var DashService = proxyquire('../../lib/services/dashd', {
-        zeromq: {
+        "@pshenmic/zeromq/v5-compat": {
           socket: socketFunc
         }
       });
