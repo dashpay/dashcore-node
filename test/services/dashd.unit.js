@@ -953,6 +953,25 @@ describe('Dash Service', function() {
       }
       repeat();
     });
+    it('will not roll the tip back to a deferred earlier block', function() {
+      var clock = sinon.useFakeTimers(10000);
+      try {
+        var dashd = new DashService(baseConfig);
+        var updated = [];
+        dashd._updateTip = function(node, message) {
+          updated.push(message.toString('hex'));
+        };
+        dashd._rapidProtectedUpdateTip({}, Buffer.from('aa', 'hex'));
+        clock.tick(500);
+        dashd._rapidProtectedUpdateTip({}, Buffer.from('bb', 'hex'));
+        clock.tick(700);
+        dashd._rapidProtectedUpdateTip({}, Buffer.from('cc', 'hex'));
+        clock.tick(5000);
+        updated.should.deep.equal(['aa', 'cc']);
+      } finally {
+        clock.restore();
+      }
+    });
   });
 
   describe('#_updateTip', function() {
@@ -4757,6 +4776,20 @@ describe('Dash Service', function() {
   });
 
   describe('#getTransaction', function() {
+    it('will give an error for a transaction it cannot parse', function(done) {
+      var dashd = new DashService(baseConfig);
+      dashd.nodes.push({
+        client: {
+          getRawTransaction: sinon.stub().callsArgWith(1, null, {result: '03000500ff'})
+        }
+      });
+      dashd.getTransaction('txid', function(err, tx) {
+        err.should.be.instanceof(Error);
+        err.message.should.match(/^Failed to parse transaction txid/);
+        should.not.exist(tx);
+        done();
+      });
+    });
     it('will give rpc error', function(done) {
       var dashd = new DashService(baseConfig);
       var getRawTransaction = sinon.stub().callsArgWith(1, {message: 'error', code: -1});
