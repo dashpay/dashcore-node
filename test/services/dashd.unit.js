@@ -25,6 +25,7 @@ var DashService = proxyquire('../../lib/services/dashd', {
 });
 var defaultDashConf = fs.readFileSync(path.resolve(__dirname, '../data/default.dash.conf'), 'utf8');
 var v24ActivationBlocks = require('../data/testnet-v24-activation-blocks.json');
+var assetUnlockV2 = require('../data/core24-asset-unlock-v2.json');
 
 describe('Dash Service', function() {
   var txhex = '01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d0104ffffffff0100f2052a0100000043410496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858eeac00000000';
@@ -1242,19 +1243,39 @@ describe('Dash Service', function() {
     });
     [1577999, 1578000].forEach(function(height) {
       var fixture = v24ActivationBlocks[height];
-      it('will handle the CbTx v' + fixture.cbTxVersion + ' coinbase of testnet block ' + height, function(done) {
+      it('will handle the CbTx v' + fixture.cbTxVersion + ' coinbase of testnet block ' + height, function() {
         var dashd = new DashService(baseConfig);
-        var expectedBuffer = Buffer.from(fixture.coinbaseRaw, 'hex');
         var notify = sinon.spy(dashd, '_notifyAddressTxidSubscribers');
-        dashd.on('tx', function(buffer) {
-          buffer.toString('hex').should.equal(fixture.coinbaseRaw);
-        });
-        dashd._zmqTransactionHandler({}, expectedBuffer);
+        dashd._zmqTransactionHandler({}, Buffer.from(fixture.coinbaseRaw, 'hex'));
         notify.callCount.should.equal(1);
         notify.args[0][0].should.equal(fixture.coinbaseTxid);
         notify.args[0][1].extraPayload.version.should.equal(fixture.cbTxVersion);
-        done();
       });
+    });
+    it('will notify a version 2 asset unlock under its txid, not its instance hash', function() {
+      var dashd = new DashService(baseConfig);
+      var notify = sinon.spy(dashd, '_notifyAddressTxidSubscribers');
+      dashd._zmqTransactionHandler({}, Buffer.from(assetUnlockV2.hex, 'hex'));
+      notify.callCount.should.equal(1);
+      notify.args[0][0].should.equal(assetUnlockV2.txid);
+      notify.args[0][0].should.not.equal(assetUnlockV2.instanceHash);
+    });
+    it('will log and skip a transaction it cannot parse', function() {
+      var dashd = new DashService(baseConfig);
+      var notify = sinon.spy(dashd, '_notifyAddressTxidSubscribers');
+      var logError = sinon.stub(log, 'error');
+      var emitted = 0;
+      dashd.on('tx', function() {
+        emitted++;
+      });
+      try {
+        dashd._zmqTransactionHandler({}, Buffer.from('03000500ff', 'hex'));
+      } finally {
+        logError.restore();
+      }
+      emitted.should.equal(1);
+      logError.callCount.should.equal(1);
+      notify.callCount.should.equal(0);
     });
   });
 
@@ -4010,8 +4031,27 @@ describe('Dash Service', function() {
           block.hash.should.equal(fixture.hash);
           block.transactions[0].hash.should.equal(fixture.coinbaseTxid);
           block.transactions[0].extraPayload.version.should.equal(fixture.cbTxVersion);
+          block.toBuffer().toString('hex').should.equal(fixture.raw);
           done();
         });
+      });
+    });
+    it('will give an error for a block it cannot parse', function(done) {
+      var dashd = new DashService(baseConfig);
+      var getBlock = sinon.stub().callsArgWith(2, null, {
+        result: blockhex.slice(0, -10)
+      });
+      dashd.nodes.push({
+        client: {
+          getBlock: getBlock,
+          getBlockHash: sinon.stub()
+        }
+      });
+      dashd.getBlock('00000000050a6d07f583beba2d803296eb1e9d4980c4a20f206c584e89a4f02b', function(err, block) {
+        err.should.be.instanceof(Error);
+        err.message.should.match(/^Failed to parse block 00000000050a6d07/);
+        should.not.exist(block);
+        done();
       });
     });
     it('will get block from cache with height (but not height)', function(done) {
