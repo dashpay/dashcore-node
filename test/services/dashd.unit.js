@@ -24,6 +24,7 @@ var DashService = proxyquire('../../lib/services/dashd', {
   }
 });
 var defaultDashConf = fs.readFileSync(path.resolve(__dirname, '../data/default.dash.conf'), 'utf8');
+var v24ActivationBlocks = require('../data/testnet-v24-activation-blocks.json');
 
 describe('Dash Service', function() {
   var txhex = '01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d0104ffffffff0100f2052a0100000043410496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858eeac00000000';
@@ -1238,6 +1239,22 @@ describe('Dash Service', function() {
       var node = {};
       dashd._zmqTransactionHandler(node, expectedBuffer);
       dashd._zmqTransactionHandler(node, expectedBuffer);
+    });
+    [1577999, 1578000].forEach(function(height) {
+      var fixture = v24ActivationBlocks[height];
+      it('will handle the CbTx v' + fixture.cbTxVersion + ' coinbase of testnet block ' + height, function(done) {
+        var dashd = new DashService(baseConfig);
+        var expectedBuffer = Buffer.from(fixture.coinbaseRaw, 'hex');
+        var notify = sinon.spy(dashd, '_notifyAddressTxidSubscribers');
+        dashd.on('tx', function(buffer) {
+          buffer.toString('hex').should.equal(fixture.coinbaseRaw);
+        });
+        dashd._zmqTransactionHandler({}, expectedBuffer);
+        notify.callCount.should.equal(1);
+        notify.args[0][0].should.equal(fixture.coinbaseTxid);
+        notify.args[0][1].extraPayload.version.should.equal(fixture.cbTxVersion);
+        done();
+      });
     });
   });
 
@@ -3971,6 +3988,28 @@ describe('Dash Service', function() {
           getBlockHash.callCount.should.equal(0);
           getBlock.callCount.should.equal(1);
           block.should.be.instanceof(dashcore.Block);
+          done();
+        });
+      });
+    });
+    [1577999, 1578000].forEach(function(height) {
+      var fixture = v24ActivationBlocks[height];
+      it('will getblock testnet ' + height + ' with a CbTx v' + fixture.cbTxVersion + ' coinbase', function(done) {
+        var dashd = new DashService(baseConfig);
+        var getBlock = sinon.stub().callsArgWith(2, null, {
+          result: fixture.raw
+        });
+        dashd.nodes.push({
+          client: {
+            getBlock: getBlock,
+            getBlockHash: sinon.stub()
+          }
+        });
+        dashd.getBlock(fixture.hash, function(err, block) {
+          should.not.exist(err);
+          block.hash.should.equal(fixture.hash);
+          block.transactions[0].hash.should.equal(fixture.coinbaseTxid);
+          block.transactions[0].extraPayload.version.should.equal(fixture.cbTxVersion);
           done();
         });
       });
