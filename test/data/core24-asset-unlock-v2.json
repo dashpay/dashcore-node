@@ -1,0 +1,6 @@
+{
+  "source": "Dash Core v24.0.0-rc.4 regtest, test/functional/feature_asset_locks.py. txid, instanceHash and payload fields are from Core decoderawtransaction; quorumHash is in Core display (reversed) order.",
+  "txid": "1c721ff71417d21850c5beb513937f0bad7299b4fba5f3b31a8f4eeacfff7d64",
+  "instanceHash": "bd3b7e735b5d8e87aae215cdd06b3e8043e30db23a8b26b52e1e462f86b15f8f",
+  "hex": "03000900000190cff40500000000232102c6a6702e7a5ed60b97ba27cfb29d3d0493132aeb4fc9398aed55c23168396ebfac000000009102210300000000000070110100c8030000603bea25913e2130bc913558aed456f568b3b703eac524b810887d98d5fe8854b5d4919a1d74dda4d79416056daddd6dd7d91e1ca9c92b14706a68c08eabf0dbf970e4f18dca0f8094da86f0d8fa969719f9cdbc78ddc3f58e35d11447b52b97af02d5d5638c7f98580d291cc0ded9b98a6ab8950c3dab9d74fe8c2c6915bad5"
+}
