@@ -2,7 +2,7 @@
   "name": "@dashevo/dashcore-node",
   "description": "Full node with extended capabilities using Dashcore and Dash Core (dashd)",
   "author": "BitPay <dev@bitpay.com>",
-  "version": "7.0.6",
+  "version": "7.0.7",
   "main": "./index.js",
   "repository": {
     "type": "git",
